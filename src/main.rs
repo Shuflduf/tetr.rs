@@ -1,3 +1,4 @@
+use bevy::math::I16Vec2;
 use bevy::prelude::*;
 use bevy::input::common_conditions::*;
 use rand::Rng;
@@ -7,9 +8,12 @@ mod pieces;
 #[derive(Component)]
 struct Active {
     offset: IVec2,
-    rotation: u8,
-    block_index: u8,
+    rotation: usize,
+    block_index: usize,
 }
+
+#[derive(Component)]
+struct Block;
 
 #[derive(Resource)]
 struct AtlasTextureHandle {
@@ -19,7 +23,7 @@ struct AtlasTextureHandle {
 fn main() {
     App::new()
         .add_plugins(DefaultPlugins)
-        .add_systems(Startup, setup)
+        .add_systems(Startup, (setup, setup_board).chain())
         .add_systems(Update, (
             move_piece,
             spawn_piece
@@ -30,28 +34,68 @@ fn main() {
 
 fn setup(
     mut commands: Commands,
-    //mut atlas: ResMut<AtlasTextureHandle>,
-    //asset_server: Res<AssetServer>,
+    asset_server: Res<AssetServer>,
 ) {
-    commands.spawn(Camera2dBundle::default());
-    //atlas = asset_server.load("Tetr-Skin.png");
+    commands.spawn( Camera2dBundle::default() );
+    commands.insert_resource( AtlasTextureHandle { data: asset_server.load("Tetr-Skin.png") } );
+}
+
+fn setup_board(
+    mut commands: Commands,
+    asset_server: Res<AssetServer>,
+    atlas: Res<AtlasTextureHandle>,
+) {
+    const WIDTH: i16 = 10;
+    const HEIGHT: i16 = 20;
+    let half_width = WIDTH / 2;
+    let half_height = HEIGHT / 2;
+    let mut board: Vec<I16Vec2> = vec![];
+    for a in -half_height..(half_height + 1){
+        board.push(I16Vec2::new(-half_width - 1, a));
+        board.push(I16Vec2::new(half_width, a));
+    }
+    for b in -half_width..half_width {
+        board.push(I16Vec2::new(b, half_height));
+    }
+    for i in board {
+        commands.spawn((
+            Block,
+            SpriteBundle {
+                texture: atlas.data.clone(),
+                transform: Transform::from_xyz((i.x as f32) * 31.0, (i.y as f32) * -31.0, 0.0),
+                ..default()
+            },
+            TextureAtlas {
+                layout: asset_server.add(TextureAtlasLayout::from_grid(
+                    UVec2::splat(31),
+                    12,
+                    1,
+                    None,
+                    None
+                )),
+                index: 7
+            },
+        ));
+    }
 }
 
 fn spawn_piece(
     mut commands: Commands,
     asset_server: Res<AssetServer>,
+    atlas: Res<AtlasTextureHandle>,
 ) {
-    let piece_type_index = rand::thread_rng().gen_range(0..6);
+    let piece_type_index = rand::thread_rng().gen_range(0..=6);
     let piece_data = PIECES[piece_type_index][0];
     for (i, block_data) in piece_data.iter().enumerate() {
         commands.spawn((
+            Block,
             Active {
                 offset: IVec2::ZERO,
                 rotation: 0,
-                block_index: i as u8,
+                block_index: i,
             },
             SpriteBundle {
-                texture: asset_server.load("Tetr-Skin.png"),
+                texture: atlas.data.clone(),
                 transform: Transform::from_xyz((block_data.x as f32) * 31.0, (block_data.y as f32) * -31.0, 0.0),
                 ..default()
             },
@@ -69,23 +113,22 @@ fn spawn_piece(
     }
 }
 
-
 fn move_piece(
     keys: Res<ButtonInput<KeyCode>>,
-    mut query: Query<(&mut Transform, &mut TextureAtlas, &mut Active)>,
+    mut query: Query<(&mut Transform, &TextureAtlas, &mut Active), With<Block>>,
 ) {
     let mut dir: f32 = 0.0;
-    let left = keys.pressed(KeyCode::KeyA); 
-    let right = keys.pressed(KeyCode::KeyD); 
+    let left = keys.just_pressed(KeyCode::KeyA); 
+    let right = keys.just_pressed(KeyCode::KeyD); 
     if (left && right) || (!left && !right) { dir = 0.0 }
     else if left { dir = -1.0 }
     else if right { dir = 1.0 }
-    for (mut transform, mut atlas, mut active) in &mut query {
+    for (mut transform, atlas, mut active) in &mut query {
         active.offset.x += dir as i32;
 
         if keys.just_pressed(KeyCode::ArrowDown) {
-            atlas.index = (atlas.index + 1) % 7;
-            //active.offset.y += -1;
+            //atlas.index = (atlas.index + 1) % 7;
+            active.offset.y += -1;
         }
         if keys.just_pressed(KeyCode::ArrowLeft) {
             active.rotation += 3;
@@ -94,8 +137,7 @@ fn move_piece(
             active.rotation += 1;
         }
         active.rotation %= 4;
-        println!("{0}", active.rotation);
-        let piece_data = PIECES[atlas.index][active.rotation as usize][active.block_index as usize].as_ivec2();
+        let piece_data = PIECES[atlas.index][active.rotation][active.block_index].as_ivec2();
         transform.translation = Vec3::new(
             (active.offset.x + piece_data.x) as f32,
             (active.offset.y + -piece_data.y) as f32,

@@ -58,28 +58,28 @@ pub const PIECES: [[[U16Vec2; 4]; 4]; 7] = [
     // O Piece (Yellow, Index 2)
     [
         [
+            U16Vec2::new(1, 0),
             U16Vec2::new(1, 1),
-            U16Vec2::new(1, 2),
+            U16Vec2::new(2, 0),
             U16Vec2::new(2, 1),
-            U16Vec2::new(2, 2),
         ],
         [
+            U16Vec2::new(1, 0),
             U16Vec2::new(1, 1),
-            U16Vec2::new(1, 2),
+            U16Vec2::new(2, 0),
             U16Vec2::new(2, 1),
-            U16Vec2::new(2, 2),
         ],
         [
+            U16Vec2::new(1, 0),
             U16Vec2::new(1, 1),
-            U16Vec2::new(1, 2),
+            U16Vec2::new(2, 0),
             U16Vec2::new(2, 1),
-            U16Vec2::new(2, 2),
         ],
         [
+            U16Vec2::new(1, 0),
             U16Vec2::new(1, 1),
-            U16Vec2::new(1, 2),
+            U16Vec2::new(2, 0),
             U16Vec2::new(2, 1),
-            U16Vec2::new(2, 2),
         ],
     ],
     // S Piece (Green, Index 3)
