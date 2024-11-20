@@ -4,11 +4,9 @@ use pieces::PIECES;
 mod pieces;
 
 #[derive(Component)]
-struct ActivePiece;
-
-#[derive(Component)]
-struct Block {
-    col_index: u8,
+struct Active {
+    offset: IVec2,
+    rotation: u8,
 }
 
 fn main() {
@@ -24,13 +22,13 @@ fn setup(
     asset_server: Res<AssetServer>,
 ) {
     commands.spawn(Camera2dBundle::default());
-    let mut blocks: Vec<Entity> = vec![];
     let piece_type_index = rand::thread_rng().gen_range(0..6);
-    let piece_data = PIECES[piece_type_index];
+    let piece_data = PIECES[piece_type_index][0];
     for block_data in piece_data {
-        let id = commands.spawn((
-            Block {
-                col_index: piece_type_index as u8
+        commands.spawn((
+            Active {
+                offset: IVec2::ZERO,
+                rotation: 0,
             },
             SpriteBundle {
                 texture: asset_server.load("Tetr-Skin.png"),
@@ -47,27 +45,41 @@ fn setup(
                 )),
                 index: piece_type_index
             },
-        )).id();
-        blocks.push(id);
+        ));
     }
 }
 
 
 fn move_piece(
     keys: Res<ButtonInput<KeyCode>>,
-    mut query: Query<&mut Transform, With<Block>>
+    mut query: Query<(&mut Transform, &mut TextureAtlas, &mut Active)>
 ) {
     let mut dir: f32 = 0.0;
-    let left = keys.pressed(KeyCode::ArrowLeft); 
-    let right = keys.pressed(KeyCode::ArrowRight); 
+    let left = keys.pressed(KeyCode::KeyA); 
+    let right = keys.pressed(KeyCode::KeyD); 
     if (left && right) || (!left && !right) { dir = 0.0 }
     else if left { dir = -1.0 }
     else if right { dir = 1.0 }
-    for mut transform in &mut query {
-        transform.translation.x += 31.0 * dir;
-        if keys.just_pressed(KeyCode::Space) {
+    for (i, (mut transform, mut atlas, mut active)) in &mut query.iter_mut().enumerate() {
+        active.offset.x += dir as i32;
 
-            transform.translation.y += -31.0;
+        if keys.just_pressed(KeyCode::ArrowDown) {
+            atlas.index = (atlas.index + 1) % 7;
+            //active.offset.y += -1;
         }
+        if keys.just_pressed(KeyCode::ArrowLeft) {
+            active.rotation += 3;
+        }
+        if keys.just_pressed(KeyCode::ArrowRight) {
+            active.rotation += 1;
+        }
+        active.rotation %= 4;
+        println!("{0}", active.rotation);
+        let piece_data = PIECES[atlas.index][active.rotation as usize][i].as_ivec2();
+        transform.translation = Vec3::new(
+            (active.offset.x + piece_data.x) as f32,
+            (active.offset.y + -piece_data.y) as f32,
+            0.0
+        ) * 31.0;
     }
 }
