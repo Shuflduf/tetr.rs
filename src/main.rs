@@ -1,6 +1,7 @@
-use bevy::math::I16Vec2;
+use bevy::ecs::system::SystemId;
+use bevy::math::{I16Vec2, U16Vec2};
 use bevy::prelude::*;
-use bevy::input::common_conditions::*;
+use bevy::utils::HashMap;
 use rand::Rng;
 use pieces::PIECES;
 mod pieces;
@@ -20,15 +21,27 @@ struct AtlasTextureHandle {
     data: Handle<Image>
 }
 
+#[derive(Resource)]
+struct OneshotSystems(HashMap<String, SystemId>);
+impl FromWorld for OneshotSystems {
+    fn from_world(world: &mut World) -> Self {
+        let mut systems = OneshotSystems(HashMap::new());
+        systems.0.insert(
+            "spawn_piece".into(),
+            world.register_system(spawn_piece)
+        );
+        systems
+    }
+}
+
 fn main() {
     App::new()
         .add_plugins(DefaultPlugins)
-        .add_systems(Startup, (setup, setup_board).chain())
+        .add_systems(Startup, (setup, setup_board, spawn_piece).chain())
         .add_systems(Update, (
             move_piece,
-            spawn_piece
-                .run_if(input_just_pressed(KeyCode::Tab)),
         ))
+        .init_resource::<OneshotSystems>()
         .run();
 }
 
@@ -80,9 +93,9 @@ fn setup_board(
 }
 
 fn spawn_piece(
-    mut commands: Commands,
     asset_server: Res<AssetServer>,
     atlas: Res<AtlasTextureHandle>,
+    mut commands: Commands,
 ) {
     let piece_type_index = rand::thread_rng().gen_range(0..=6);
     let piece_data = PIECES[piece_type_index][0];
@@ -116,7 +129,9 @@ fn spawn_piece(
 fn move_piece(
     keys: Res<ButtonInput<KeyCode>>,
     sleeping_query: Query<&Transform, (Without<Active>, With<Block>)>,
-    mut active_query: Query<(&mut Transform, &TextureAtlas, &mut Active), With<Block>>,
+    systems: Res<OneshotSystems>,
+    mut active_query: Query<(Entity, &mut Transform, &TextureAtlas, &mut Active), With<Block>>,
+    mut commands: Commands,
 ) {
     let mut dir: f32 = 0.0;
     let left = keys.just_pressed(KeyCode::KeyA); 
@@ -134,7 +149,7 @@ fn move_piece(
         ))
     }
 
-    for (mut transform, atlas, mut active) in &mut active_query {
+    for (entity, mut transform, atlas, mut active) in &mut active_query {
         let mut temp_movement = active.offset;
         let mut temp_rotation = active.rotation;
         temp_movement.x += dir as i32;
@@ -142,7 +157,7 @@ fn move_piece(
 
         if keys.just_pressed(KeyCode::ArrowDown) {
             //atlas.index = (atlas.index + 1) % 7;
-            temp_movement.y += -1;
+            temp_movement.y -= 1;
         }
         if keys.just_pressed(KeyCode::ArrowLeft) {
             //active.rotation += 3;
@@ -157,19 +172,7 @@ fn move_piece(
 
         // The Collision Part 😱😱
         let piece_data = PIECES[atlas.index][temp_rotation];
-        let mut can_move = true;
-        for (i, _) in piece_data.iter().enumerate() {
-            let block_data = piece_data[i].as_ivec2();
-            let future = temp_movement + (block_data * IVec2::new(1, -1));
-            if collision.contains(&future) {
-                can_move = false;
-                break;
-            }
-        }
-        //active.offset = {
-        //};
-
-        if can_move {
+        if can_move(&piece_data, &collision, temp_movement) {
             active.offset = temp_movement;
             active.rotation = temp_rotation;
             let block_data = piece_data[active.block_index].as_ivec2();
@@ -178,6 +181,23 @@ fn move_piece(
                 (active.offset.y - block_data.y) as f32,
                 0.0
             ) * 31.0;
+            if !can_move(&piece_data, &collision, active.offset + IVec2::new(0, -1)) {
+                commands.entity(entity)
+                    .remove::<Active>();
+                let id = systems.0["spawn_piece"];
+                commands.run_system(id);
+            }
         }
     }
+}
+
+fn can_move(piece_data: &[U16Vec2; 4], collision: &[IVec2], dir: IVec2) -> bool {
+    for i in piece_data {
+        let block_data = i.as_ivec2();
+        let future = dir + (block_data * IVec2::new(1, -1));
+        if collision.contains(&future) {
+            return false
+        }
+    }
+    true
 }
