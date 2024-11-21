@@ -108,4 +108,10 @@ fn check_board(
             )
         );
     }
+    let half_height = BOARD_SIZE.y / 2;
+    let half_width = BOARD_SIZE.x / 2;
+    'row: for row in (half_height..-half_height).collect::<Vec<i32>>() {
+
+    }
+    println!("{grid_positions:?}");
 }

@@ -21,6 +21,7 @@ pub fn spawn_piece(
     let piece_data = PIECES[piece_type_index][0];
     for (i, block_data) in piece_data.iter().enumerate() {
         commands.spawn((
+            Block,
             Active {
                 offset: IVec2::new(-2, 8),
                 rotation: 0,
@@ -104,12 +105,13 @@ pub fn move_piece(
             if !can_move(&piece_data, &collision, active.offset + IVec2::new(0, -1)) {
                 commands.entity(entity)
                     .remove::<Active>();
-                if !piece_placed {
-                    let id = systems.0["spawn_piece"];
-                    commands.run_system(id);
-                    piece_placed = true;
-                }
+                piece_placed = true;
             }
+        }
+    }
+    if piece_placed {
+        for id in [systems.0["spawn_piece"], systems.0["check_board"]] {
+            commands.run_system(id);
         }
     }
 }
