@@ -135,28 +135,32 @@ fn move_piece(
     }
 
     for (mut transform, atlas, mut active) in &mut active_query {
-        let mut temp = active.offset;
-        temp.x += dir as i32;
+        let mut temp_movement = active.offset;
+        let mut temp_rotation = active.rotation;
+        temp_movement.x += dir as i32;
         //active.offset.x += dir as i32;
 
         if keys.just_pressed(KeyCode::ArrowDown) {
             //atlas.index = (atlas.index + 1) % 7;
-            temp.y += -1;
+            temp_movement.y += -1;
         }
         if keys.just_pressed(KeyCode::ArrowLeft) {
-            active.rotation += 3;
+            //active.rotation += 3;
+            temp_rotation += 3;
         }
         if keys.just_pressed(KeyCode::ArrowRight) {
-            active.rotation += 1;
+            //active.rotation += 1;
+            temp_rotation += 1;
         }
-        active.rotation %= 4;
+        //active.rotation %= 4;
+        temp_rotation %= 4;
 
         // The Collision Part 😱😱
-        let piece_data = PIECES[atlas.index][active.rotation];
+        let piece_data = PIECES[atlas.index][temp_rotation];
         let mut can_move = true;
         for (i, _) in piece_data.iter().enumerate() {
             let block_data = piece_data[i].as_ivec2();
-            let future = temp + (block_data * IVec2::new(1, -1));
+            let future = temp_movement + (block_data * IVec2::new(1, -1));
             if collision.contains(&future) {
                 can_move = false;
                 break;
@@ -166,7 +170,8 @@ fn move_piece(
         //};
 
         if can_move {
-            active.offset = temp;
+            active.offset = temp_movement;
+            active.rotation = temp_rotation;
             let block_data = piece_data[active.block_index].as_ivec2();
             transform.translation = Vec3::new(
                 (active.offset.x + block_data.x) as f32,
