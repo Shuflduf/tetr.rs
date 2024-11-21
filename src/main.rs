@@ -150,20 +150,29 @@ fn move_piece(
             active.rotation += 1;
         }
         active.rotation %= 4;
+
+        // The Collision Part 😱😱
         let piece_data = PIECES[atlas.index][active.rotation];
-        let block_data = piece_data[active.block_index].as_ivec2();
-        active.offset = {
+        let mut can_move = true;
+        for (i, _) in piece_data.iter().enumerate() {
+            let block_data = piece_data[i].as_ivec2();
             let future = temp + (block_data * IVec2::new(1, -1));
             if collision.contains(&future) {
-                active.offset
-            } else {
-                temp
+                can_move = false;
+                break;
             }
-        };
-        transform.translation = Vec3::new(
-            (active.offset.x + block_data.x) as f32,
-            (active.offset.y - block_data.y) as f32,
-            0.0
-        ) * 31.0;
+        }
+        //active.offset = {
+        //};
+
+        if can_move {
+            active.offset = temp;
+            let block_data = piece_data[active.block_index].as_ivec2();
+            transform.translation = Vec3::new(
+                (active.offset.x + block_data.x) as f32,
+                (active.offset.y - block_data.y) as f32,
+                0.0
+            ) * 31.0;
+        }
     }
 }
