@@ -136,7 +136,7 @@ fn move_piece(
 
     for (mut transform, atlas, mut active) in &mut active_query {
         let mut temp = active.offset;
-        temp += dir as i32;
+        temp.x += dir as i32;
         //active.offset.x += dir as i32;
 
         if keys.just_pressed(KeyCode::ArrowDown) {
