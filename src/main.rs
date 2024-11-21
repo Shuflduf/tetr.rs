@@ -115,7 +115,8 @@ fn spawn_piece(
 
 fn move_piece(
     keys: Res<ButtonInput<KeyCode>>,
-    mut query: Query<(&mut Transform, &TextureAtlas, &mut Active), With<Block>>,
+    sleeping_query: Query<&Transform, (Without<Active>, With<Block>)>,
+    mut active_query: Query<(&mut Transform, &TextureAtlas, &mut Active), With<Block>>,
 ) {
     let mut dir: f32 = 0.0;
     let left = keys.just_pressed(KeyCode::KeyA); 
@@ -123,12 +124,25 @@ fn move_piece(
     if (left && right) || (!left && !right) { dir = 0.0 }
     else if left { dir = -1.0 }
     else if right { dir = 1.0 }
-    for (mut transform, atlas, mut active) in &mut query {
-        active.offset.x += dir as i32;
+
+    // TODO: remake this so collision is only calculated when the board updates
+    let mut collision: Vec<IVec2> = vec![];
+    for transform in &sleeping_query {
+        collision.push(IVec2::new(
+            (transform.translation.x / 31.0).trunc() as i32,
+            (transform.translation.y / 31.0).trunc() as i32
+        ))
+    }
+    println!("{collision:?}");
+
+    for (mut transform, atlas, mut active) in &mut active_query {
+        let mut t = active.offset;
+        t += dir as i32;
+        //active.offset.x += dir as i32;
 
         if keys.just_pressed(KeyCode::ArrowDown) {
             //atlas.index = (atlas.index + 1) % 7;
-            active.offset.y += -1;
+            t.y += -1;
         }
         if keys.just_pressed(KeyCode::ArrowLeft) {
             active.rotation += 3;
@@ -138,9 +152,17 @@ fn move_piece(
         }
         active.rotation %= 4;
         let piece_data = PIECES[atlas.index][active.rotation][active.block_index].as_ivec2();
+        let expected = {
+            let future = t + (piece_data * IVec2::new(1, -1));
+            if collision.contains(&future) {
+                active.offset 
+            } else {
+                future
+            }
+        };
         transform.translation = Vec3::new(
-            (active.offset.x + piece_data.x) as f32,
-            (active.offset.y + -piece_data.y) as f32,
+            expected.x as f32,
+            expected.y as f32,
             0.0
         ) * 31.0;
     }
