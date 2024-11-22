@@ -37,7 +37,9 @@ impl FromWorld for OneshotSystems {
 struct Wall; 
 
 #[derive(Component)]
-struct Block;
+struct Block {
+    grid_pos: IVec2
+}
 
 fn main() {
     App::new()
@@ -76,7 +78,9 @@ fn setup_board(
     for i in board {
         commands.spawn((
             Wall,
-            Block,
+            Block {
+                grid_pos: i
+            },
             SpriteBundle {
                 texture: atlas.data.clone(),
                 transform: Transform::from_xyz((i.x * TILE_SIZE) as f32, (i.y * -TILE_SIZE) as f32, 0.0),
@@ -110,8 +114,19 @@ fn check_board(
     }
     let half_height = BOARD_SIZE.y / 2;
     let half_width = BOARD_SIZE.x / 2;
-    'row: for row in (half_height..-half_height).collect::<Vec<i32>>() {
-
+    'row: for row in (half_height..-half_height).rev().collect::<Vec<i32>>() {
+        'col: for col in (half_width..-half_width).collect::<Vec<i32>>() {
+            println!("({col}, {row})");
+            //if 
+        }
     }
-    println!("{grid_positions:?}");
+    //println!("{grid_positions:?}");
+}
+
+fn grid_to_real(input: IVec2) -> Vec3 {
+    Vec3::new(
+        (input.x * TILE_SIZE) as f32,
+        (input.y * TILE_SIZE) as f32,
+        0.0
+    )
 }

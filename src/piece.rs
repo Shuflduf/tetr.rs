@@ -20,8 +20,13 @@ pub fn spawn_piece(
     let piece_type_index = rand::thread_rng().gen_range(0..=6);
     let piece_data = PIECES[piece_type_index][0];
     for (i, block_data) in piece_data.iter().enumerate() {
-        commands.spawn((
-            Block,
+        let block = commands.spawn((
+            Block {
+                grid_pos: IVec2::new(
+                    block_data.x.into(),
+                    block_data.y.into()
+                )
+            },
             Active {
                 offset: IVec2::new(-2, 8),
                 rotation: 0,
@@ -42,7 +47,8 @@ pub fn spawn_piece(
                 )),
                 index: piece_type_index
             },
-        ));
+        )).id();
+        //block.
     }
 }
 
