@@ -3,7 +3,7 @@ use bevy::prelude::*;
 use rand::Rng;
 
 use crate::srs::PIECES;
-use crate::Block;
+use crate::{Block, TILE_SIZE};
 
 #[derive(Component)]
 pub struct Active {
@@ -17,7 +17,8 @@ pub fn spawn_piece(
     atlas: Res<crate::AtlasTextureHandle>,
     mut commands: Commands,
 ) {
-    let piece_type_index = rand::thread_rng().gen_range(0..=6);
+    //let piece_type_index = rand::thread_rng().gen_range(0..=6);
+    let piece_type_index = 2;
     let piece_data = PIECES[piece_type_index][0];
     for (i, block_data) in piece_data.iter().enumerate() {
         let block = commands.spawn((
@@ -62,6 +63,7 @@ pub fn move_piece(
     let mut dir: f32 = 0.0;
     let left = keys.just_pressed(KeyCode::KeyA); 
     let right = keys.just_pressed(KeyCode::KeyD); 
+    let mut hard_drop = false;
     if (left && right) || (!left && !right) { dir = 0.0 }
     else if left { dir = -1.0 }
     else if right { dir = 1.0 }
@@ -83,6 +85,9 @@ pub fn move_piece(
         //active.offset.x += dir as i32;
 
         if keys.just_pressed(KeyCode::ArrowDown) {
+            hard_drop = true
+        }
+        if keys.just_pressed(KeyCode::ArrowUp) {
             //atlas.index = (atlas.index + 1) % 7;
             temp_movement.y -= 1;
         }
@@ -99,6 +104,13 @@ pub fn move_piece(
 
         // The Collision Part 😱😱
         let piece_data = PIECES[atlas.index][temp_rotation];
+
+        if hard_drop {
+            while can_move(&piece_data, &collision, IVec2::new(0, -1)) {
+                active.offset.y -= 1;
+                transform.translation.y -= TILE_SIZE as f32;
+            }
+        }
         if can_move(&piece_data, &collision, temp_movement) {
             active.offset = temp_movement;
             active.rotation = temp_rotation;
@@ -108,12 +120,13 @@ pub fn move_piece(
                 (active.offset.y - block_data.y) as f32,
                 0.0
             ) * 31.0;
-            if !can_move(&piece_data, &collision, active.offset + IVec2::new(0, -1)) {
-                commands.entity(entity)
-                    .remove::<Active>();
-                piece_placed = true;
-            }
         }
+        if !can_move(&piece_data, &collision, active.offset + IVec2::new(0, -1)) {
+            commands.entity(entity)
+                .remove::<Active>();
+            piece_placed = true;
+        }
+        
     }
     if piece_placed {
         for id in [systems.0["spawn_piece"], systems.0["check_board"]] {

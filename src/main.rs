@@ -1,6 +1,6 @@
 #![allow(clippy::type_complexity)]
 
-use bevy::ecs::system::SystemId;
+use bevy::{ecs::system::SystemId, reflect::List};
 use bevy::prelude::*;
 use bevy::utils::HashMap;
 use piece::{spawn_piece, Active};
@@ -101,32 +101,31 @@ fn setup_board(
 }
 
 fn check_board(
-    query: Query<&Transform, (With<Block>, Without<Active>, Without<Wall>)>,
+    query: Query<(&Transform, &Block), (Without<Active>, Without<Wall>)>,
 ) {
-    let mut grid_positions: Vec<IVec2> = vec![];
-    for transform in &query {
-        grid_positions.push(
+    let grid_positions: Vec<IVec2> = query.iter()
+        .map(|(_, block)| 
             IVec2::new(
-                (transform.translation.x as i32) / TILE_SIZE,
-                (transform.translation.y as i32) / -TILE_SIZE
+                block.grid_pos.x,
+                block.grid_pos.y
             )
-        );
-    }
-    let half_height = BOARD_SIZE.y / 2;
-    let half_width = BOARD_SIZE.x / 2;
-    'row: for row in (half_height..-half_height).rev().collect::<Vec<i32>>() {
-        'col: for col in (half_width..-half_width).collect::<Vec<i32>>() {
-            println!("({col}, {row})");
-            //if 
+        )
+        .collect();
+    println!("Grid: {grid_positions:?}");
+    let mut found_rows: Vec<i32> = vec![];
+    for row in 0..BOARD_SIZE.x {
+        let mut found = true;
+        'col: for col in 1..BOARD_SIZE.y {
+            let pos = IVec2::new(col, row);
+            println!("{pos:?}");
+            if !grid_positions.contains(&pos) {
+                found = false;
+                break 'col;
+            }
+        }
+        if found {
+            found_rows.push(row);
         }
     }
-    //println!("{grid_positions:?}");
-}
-
-fn grid_to_real(input: IVec2) -> Vec3 {
-    Vec3::new(
-        (input.x * TILE_SIZE) as f32,
-        (input.y * TILE_SIZE) as f32,
-        0.0
-    )
+    println!("Found: {found_rows:?}");
 }
