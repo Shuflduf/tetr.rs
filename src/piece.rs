@@ -111,7 +111,7 @@ pub fn move_piece(
                 transform.translation.y -= TILE_SIZE as f32;
             }
         }
-        if can_move(&piece_data, &collision, temp_movement) {
+        else if can_move(&piece_data, &collision, temp_movement) {
             active.offset = temp_movement;
             active.rotation = temp_rotation;
             let block_data = piece_data[active.block_index].as_ivec2();
