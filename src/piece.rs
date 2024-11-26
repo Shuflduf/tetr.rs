@@ -17,8 +17,9 @@ pub fn spawn_piece(
     atlas: Res<crate::AtlasTextureHandle>,
     mut commands: Commands,
 ) {
-    let piece_type_index = rand::thread_rng().gen_range(0..=6);
-    //let piece_type_index = 2;
+    const PIECE_SPAWN_POS: IVec2 = IVec2::new(-2, 8);
+    //let piece_type_index = rand::thread_rng().gen_range(0..=6);
+    let piece_type_index = 2;
     let piece_data = PIECES[piece_type_index][0];
     for (i, block_data) in piece_data
         .iter()
@@ -26,10 +27,10 @@ pub fn spawn_piece(
         .enumerate() {
         let block = commands.spawn((
             Block {
-                grid_pos: block_data
+                grid_pos: block_data + PIECE_SPAWN_POS
             },
             Active {
-                offset: IVec2::new(-2, 8),
+                offset: PIECE_SPAWN_POS,
                 rotation: 0,
                 block_index: i,
             },
@@ -81,6 +82,7 @@ pub fn move_piece(
         .iter()
         .map(|block| block.grid_pos)
         .collect();
+    println!("{collision:?}");
 
     let mut piece_placed = false;
     for (entity, mut transform, atlas, mut active, mut block) in &mut active_query {
@@ -103,7 +105,8 @@ pub fn move_piece(
         temp_rotation %= 4;
 
         // The Collision Part 😱😱
-        let piece_data = PIECES[atlas.index][temp_rotation];
+        let piece_data = PIECES[atlas.index][temp_rotation]
+            .map(|block| block.as_ivec2() * IVec2::new(1, -1));
 
         if hard_drop {
             while can_move(&piece_data, &collision, active.offset + DOWN) {
@@ -116,7 +119,9 @@ pub fn move_piece(
             active.offset = temp_movement;
             block.grid_pos = temp_movement;
             active.rotation = temp_rotation;
-            let block_data = piece_data[active.block_index].as_ivec2();
+            let block_data = piece_data[active.block_index];
+            println!("Guess: {0:?}", active.offset + block_data);
+            println!("Actual: {0:?}", block.grid_pos);
             transform.translation = Vec3::new(
                 (active.offset.x + block_data.x) as f32,
                 (active.offset.y - block_data.y) as f32,
@@ -137,10 +142,10 @@ pub fn move_piece(
     }
 }
 
-fn can_move(piece_data: &[U16Vec2; 4], collision: &[IVec2], dir: IVec2) -> bool {
+fn can_move(piece_data: &[IVec2; 4], collision: &[IVec2], dir: IVec2) -> bool {
     for i in piece_data {
-        let block_data = i.as_ivec2();
-        let future = dir + block_data;
+        let block_data = i;
+        let future = dir + *block_data;
         if collision.contains(&future) {
             return false
         }
