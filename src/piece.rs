@@ -57,9 +57,10 @@ pub fn move_piece(
     keys: Res<ButtonInput<KeyCode>>,
     sleeping_query: Query<&Block, Without<Active>>,
     systems: Res<crate::OneshotSystems>,
-    mut active_query: Query<(Entity, &mut Transform, &TextureAtlas, &mut Active)>,
+    mut active_query: Query<(Entity, &mut Transform, &TextureAtlas, &mut Active, &mut Block)>,
     mut commands: Commands,
 ) {
+    const DOWN: IVec2 = IVec2::new(0, -1);
     let mut dir: f32 = 0.0;
     let left = keys.just_pressed(KeyCode::KeyA); 
     let right = keys.just_pressed(KeyCode::KeyD); 
@@ -82,7 +83,7 @@ pub fn move_piece(
         .collect();
 
     let mut piece_placed = false;
-    for (entity, mut transform, atlas, mut active) in &mut active_query {
+    for (entity, mut transform, atlas, mut active, mut block) in &mut active_query {
         let mut temp_movement = active.offset;
         let mut temp_rotation = active.rotation;
         temp_movement.x += dir as i32;
@@ -105,22 +106,24 @@ pub fn move_piece(
         let piece_data = PIECES[atlas.index][temp_rotation];
 
         if hard_drop {
-            while can_move(&piece_data, &collision, IVec2::new(0, -1)) {
+            while can_move(&piece_data, &collision, active.offset + DOWN) {
                 active.offset.y -= 1;
+                block.grid_pos.y -= 1;
                 transform.translation.y -= TILE_SIZE as f32;
             }
         }
         else if can_move(&piece_data, &collision, temp_movement) {
             active.offset = temp_movement;
+            block.grid_pos = temp_movement;
             active.rotation = temp_rotation;
             let block_data = piece_data[active.block_index].as_ivec2();
             transform.translation = Vec3::new(
                 (active.offset.x + block_data.x) as f32,
                 (active.offset.y - block_data.y) as f32,
                 0.0
-            ) * 31.0;
+            ) * TILE_SIZE as f32;
         }
-        if !can_move(&piece_data, &collision, active.offset + IVec2::new(0, -1)) {
+        if !can_move(&piece_data, &collision, active.offset + DOWN) {
             commands.entity(entity)
                 .remove::<Active>();
             piece_placed = true;
@@ -137,7 +140,7 @@ pub fn move_piece(
 fn can_move(piece_data: &[U16Vec2; 4], collision: &[IVec2], dir: IVec2) -> bool {
     for i in piece_data {
         let block_data = i.as_ivec2();
-        let future = dir + (block_data * IVec2::new(1, -1));
+        let future = dir + block_data;
         if collision.contains(&future) {
             return false
         }
