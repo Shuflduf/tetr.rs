@@ -17,16 +17,16 @@ pub fn spawn_piece(
     atlas: Res<crate::AtlasTextureHandle>,
     mut commands: Commands,
 ) {
-    //let piece_type_index = rand::thread_rng().gen_range(0..=6);
-    let piece_type_index = 2;
+    let piece_type_index = rand::thread_rng().gen_range(0..=6);
+    //let piece_type_index = 2;
     let piece_data = PIECES[piece_type_index][0];
-    for (i, block_data) in piece_data.iter().enumerate() {
+    for (i, block_data) in piece_data
+        .iter()
+        .map(|block| block.as_ivec2() * IVec2::new(1, -1))
+        .enumerate() {
         let block = commands.spawn((
             Block {
-                grid_pos: IVec2::new(
-                    block_data.x.into(),
-                    block_data.y.into()
-                )
+                grid_pos: block_data
             },
             Active {
                 offset: IVec2::new(-2, 8),
@@ -35,7 +35,7 @@ pub fn spawn_piece(
             },
             SpriteBundle {
                 texture: atlas.data.clone(),
-                transform: Transform::from_xyz((block_data.x as f32) * 31.0, (block_data.y as f32) * -31.0, 0.0),
+                transform: Transform::from_xyz((block_data.x * TILE_SIZE) as f32, (block_data.y * TILE_SIZE) as f32, 0.0),
                 ..default()
             },
             TextureAtlas {
@@ -55,7 +55,7 @@ pub fn spawn_piece(
 
 pub fn move_piece(
     keys: Res<ButtonInput<KeyCode>>,
-    sleeping_query: Query<&Transform, (With<Block>, Without<Active>)>,
+    sleeping_query: Query<&Block, Without<Active>>,
     systems: Res<crate::OneshotSystems>,
     mut active_query: Query<(Entity, &mut Transform, &TextureAtlas, &mut Active)>,
     mut commands: Commands,
@@ -69,37 +69,36 @@ pub fn move_piece(
     else if right { dir = 1.0 }
 
     // TODO: remake this so collision is only calculated when the board updates
-    let mut collision: Vec<IVec2> = vec![];
-    for transform in &sleeping_query {
-        collision.push(IVec2::new(
-            (transform.translation.x / 31.0).trunc() as i32,
-            (transform.translation.y / 31.0).trunc() as i32
-        ))
-    }
+    //let mut collision: Vec<IVec2> = vec![];
+    //for transform in &sleeping_query {
+    //    collision.push(IVec2::new(
+    //        (transform.translation.x / 31.0).trunc() as i32,
+    //        (transform.translation.y / 31.0).trunc() as i32
+    //    ))
+    //}
+    let collision: Vec<IVec2> = sleeping_query
+        .iter()
+        .map(|block| block.grid_pos)
+        .collect();
 
     let mut piece_placed = false;
     for (entity, mut transform, atlas, mut active) in &mut active_query {
         let mut temp_movement = active.offset;
         let mut temp_rotation = active.rotation;
         temp_movement.x += dir as i32;
-        //active.offset.x += dir as i32;
 
         if keys.just_pressed(KeyCode::ArrowDown) {
             hard_drop = true
         }
         if keys.just_pressed(KeyCode::ArrowUp) {
-            //atlas.index = (atlas.index + 1) % 7;
             temp_movement.y -= 1;
         }
         if keys.just_pressed(KeyCode::ArrowLeft) {
-            //active.rotation += 3;
             temp_rotation += 3;
         }
         if keys.just_pressed(KeyCode::ArrowRight) {
-            //active.rotation += 1;
             temp_rotation += 1;
         }
-        //active.rotation %= 4;
         temp_rotation %= 4;
 
         // The Collision Part 😱😱

@@ -1,6 +1,6 @@
 #![allow(clippy::type_complexity)]
 
-use bevy::{ecs::system::SystemId, reflect::List};
+use bevy::ecs::system::SystemId;
 use bevy::prelude::*;
 use bevy::utils::HashMap;
 use piece::{spawn_piece, Active};
@@ -73,7 +73,7 @@ fn setup_board(
         board.push(IVec2::new(half_width, a));
     }
     for b in -half_width..half_width {
-        board.push(IVec2::new(b, half_height));
+        board.push(IVec2::new(b, -half_height));
     }
     for i in board {
         commands.spawn((
@@ -83,7 +83,7 @@ fn setup_board(
             },
             SpriteBundle {
                 texture: atlas.data.clone(),
-                transform: Transform::from_xyz((i.x * TILE_SIZE) as f32, (i.y * -TILE_SIZE) as f32, 0.0),
+                transform: Transform::from_xyz((i.x * TILE_SIZE) as f32, (i.y * TILE_SIZE) as f32, 0.0),
                 ..default()
             },
             TextureAtlas {
