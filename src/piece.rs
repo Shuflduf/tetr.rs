@@ -18,14 +18,14 @@ pub fn spawn_piece(
     mut commands: Commands,
 ) {
     const PIECE_SPAWN_POS: IVec2 = IVec2::new(-2, 8);
-    //let piece_type_index = rand::thread_rng().gen_range(0..=6);
-    let piece_type_index = 2;
+    let piece_type_index = rand::thread_rng().gen_range(0..=6);
+    //let piece_type_index = 2;
     let piece_data = PIECES[piece_type_index][0];
     for (i, block_data) in piece_data
         .iter()
         .map(|block| block.as_ivec2() * IVec2::new(1, -1))
         .enumerate() {
-        let block = commands.spawn((
+        commands.spawn((
             Block {
                 grid_pos: block_data + PIECE_SPAWN_POS
             },
@@ -49,7 +49,7 @@ pub fn spawn_piece(
                 )),
                 index: piece_type_index
             },
-        )).id();
+        ));
         //block.
     }
 }
@@ -71,13 +71,6 @@ pub fn move_piece(
     else if right { dir = 1.0 }
 
     // TODO: remake this so collision is only calculated when the board updates
-    //let mut collision: Vec<IVec2> = vec![];
-    //for transform in &sleeping_query {
-    //    collision.push(IVec2::new(
-    //        (transform.translation.x / 31.0).trunc() as i32,
-    //        (transform.translation.y / 31.0).trunc() as i32
-    //    ))
-    //}
     let collision: Vec<IVec2> = sleeping_query
         .iter()
         .map(|block| block.grid_pos)
@@ -106,7 +99,7 @@ pub fn move_piece(
 
         // The Collision Part 😱😱
         let piece_data = PIECES[atlas.index][temp_rotation]
-            .map(|block| block.as_ivec2() * IVec2::new(1, -1));
+            .map(|block| block.as_ivec2() * IVec2::new(1, 1));
 
         if hard_drop {
             while can_move(&piece_data, &collision, active.offset + DOWN) {
@@ -116,10 +109,10 @@ pub fn move_piece(
             }
         }
         else if can_move(&piece_data, &collision, temp_movement) {
-            active.offset = temp_movement;
-            block.grid_pos = temp_movement;
-            active.rotation = temp_rotation;
             let block_data = piece_data[active.block_index];
+            active.offset = temp_movement;
+            block.grid_pos = temp_movement + block_data;
+            active.rotation = temp_rotation;
             println!("Guess: {0:?}", active.offset + block_data);
             println!("Actual: {0:?}", block.grid_pos);
             transform.translation = Vec3::new(
