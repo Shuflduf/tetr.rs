@@ -1,9 +1,9 @@
-use bevy::math::U16Vec2;
 use bevy::prelude::*;
+use bevy::utils::HashSet;
 use rand::Rng;
 
 use crate::srs::PIECES;
-use crate::{Block, TILE_SIZE};
+use crate::{get_board_pos, Block, TILE_SIZE};
 
 #[derive(Component)]
 pub struct Active {
@@ -24,7 +24,8 @@ pub fn spawn_piece(
     for (i, block_data) in piece_data
         .iter()
         .map(|block| block.as_ivec2() * IVec2::new(1, -1))
-        .enumerate() {
+        .enumerate()
+    {
         commands.spawn((
             Block {
                 grid_pos: block_data + PIECE_SPAWN_POS
@@ -75,7 +76,12 @@ pub fn move_piece(
         .iter()
         .map(|block| block.grid_pos)
         .collect();
-    println!("{collision:?}");
+    // FOR DEBUGGING
+    {
+
+    }
+    let difference: HashSet<IVec2> = collision.into_iter().collect::<HashSet<IVec2>>().difference(&get_board_pos());
+    println!("{0:?}", difference);
 
     let mut piece_placed = false;
     for (entity, mut transform, atlas, mut active, mut block) in &mut active_query {
@@ -111,9 +117,8 @@ pub fn move_piece(
         else if can_move(&piece_data, &collision, temp_movement) {
             let block_data = piece_data[active.block_index];
             active.offset = temp_movement;
-            block.grid_pos = temp_movement + block_data;
+            block.grid_pos = active.offset + block_data;
             active.rotation = temp_rotation;
-            println!("Guess: {0:?}", active.offset + block_data);
             println!("Actual: {0:?}", block.grid_pos);
             transform.translation = Vec3::new(
                 (active.offset.x + block_data.x) as f32,

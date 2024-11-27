@@ -60,11 +60,7 @@ fn setup(
     commands.insert_resource( AtlasTextureHandle { data: asset_server.load("Tetr-Skin.png") } );
 }
 
-fn setup_board(
-    mut commands: Commands,
-    asset_server: Res<AssetServer>,
-    atlas: Res<AtlasTextureHandle>,
-) {
+fn get_board_pos() -> Vec<IVec2> {
     let half_width = BOARD_SIZE.x / 2;
     let half_height = BOARD_SIZE.y / 2;
     let mut board: Vec<IVec2> = vec![];
@@ -75,7 +71,15 @@ fn setup_board(
     for b in -half_width..half_width {
         board.push(IVec2::new(b, -half_height));
     }
-    for i in board {
+    board
+}
+
+fn setup_board(
+    mut commands: Commands,
+    asset_server: Res<AssetServer>,
+    atlas: Res<AtlasTextureHandle>,
+) {
+    for i in get_board_pos() {
         commands.spawn((
             Wall,
             Block {
