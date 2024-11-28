@@ -1,10 +1,8 @@
-use bevy::math::ivec2;
 use bevy::prelude::*;
-use bevy::utils::HashSet;
 use rand::Rng;
 
 use crate::srs::PIECES;
-use crate::{get_board_pos, Block, TILE_SIZE};
+use crate::{Block, TILE_SIZE};
 
 #[derive(Component)]
 pub struct Active {
@@ -19,8 +17,8 @@ pub fn spawn_piece(
     mut commands: Commands,
 ) {
     const PIECE_SPAWN_POS: IVec2 = IVec2::new(-2, 8);
-    let piece_type_index = rand::thread_rng().gen_range(0..=6);
-    //let piece_type_index = 2;
+    //let piece_type_index = rand::thread_rng().gen_range(0..=6);
+    let piece_type_index = 2;
     let piece_data = PIECES[piece_type_index][0];
     for (i, block_data) in piece_data
         .iter()
@@ -77,13 +75,6 @@ pub fn move_piece(
         .iter()
         .map(|block| block.grid_pos)
         .collect();
-    // FOR DEBUGGING
-    {
-        let full_collision: HashSet<IVec2> = collision.clone().into_iter().collect();
-        let base_collision: HashSet<IVec2> = get_board_pos().into_iter().collect();
-        let difference = full_collision.difference(&base_collision);
-        //println!("{0:?}", difference);
-    }
 
     let mut piece_placed = false;
     for (entity, mut transform, atlas, mut active, mut block) in &mut active_query {
@@ -121,8 +112,6 @@ pub fn move_piece(
             active.offset = temp_movement;
             block.grid_pos = active.offset + block_data;
             active.rotation = temp_rotation;
-            println!("Actual: {0:?}", block.grid_pos);
-            println!("Translation: {0:?}", (transform.translation / (TILE_SIZE as f32)).as_ivec3());
             transform.translation = Vec3::new(
                 (active.offset.x + block_data.x) as f32,
                 (active.offset.y + block_data.y) as f32,

@@ -1,6 +1,6 @@
 #![allow(clippy::type_complexity)]
 
-use bevy::ecs::system::SystemId;
+use bevy::{ecs::system::SystemId, math::ivec2};
 use bevy::prelude::*;
 use bevy::utils::HashMap;
 use piece::{spawn_piece, Active};
@@ -122,30 +122,31 @@ fn setup_board(
 }
 
 fn check_board(
-    query: Query<(&Transform, &Block), (Without<Active>, Without<Wall>)>,
+    query: Query<(Entity, &Block), (Without<Active>, Without<Wall>)>,
 ) {
     let grid_positions: Vec<IVec2> = query.iter()
         .map(|(_, block)| 
-            IVec2::new(
+            ivec2(
                 block.grid_pos.x,
                 block.grid_pos.y
             )
         )
         .collect();
-    println!("Grid: {grid_positions:?}");
     let mut found_rows: Vec<i32> = vec![];
-    for row in 0..BOARD_SIZE.x {
+    let half_width = BOARD_SIZE.x / 2;
+    let half_height = BOARD_SIZE.y / 2;
+    for y in -half_height..half_height {
         let mut found = true;
-        'col: for col in 1..BOARD_SIZE.y {
-            let pos = IVec2::new(col, row);
+        'x: for x in -half_width..half_width{
+            let pos = ivec2(x, y);
             println!("{pos:?}");
             if !grid_positions.contains(&pos) {
                 found = false;
-                break 'col;
+                break 'x;
             }
         }
         if found {
-            found_rows.push(row);
+            found_rows.push(y);
         }
     }
     println!("Found: {found_rows:?}");
