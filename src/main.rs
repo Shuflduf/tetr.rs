@@ -122,11 +122,11 @@ fn setup_board(
 }
 
 fn check_board(
-    query: Query<(Entity, &Block), (Without<Active>, Without<Wall>)>,
+    query: Query<(Entity, &mut Block, &mut Transform), (Without<Active>, Without<Wall>)>,
     commands: Commands,
 ) {
     let grid_positions: Vec<IVec2> = query.iter()
-        .map(|(_, block)| 
+        .map(|(_, block, _)| 
             ivec2(
                 block.grid_pos.x,
                 block.grid_pos.y
@@ -157,14 +157,23 @@ fn check_board(
 }
 
 fn clear_lines(
-    query: Query<(Entity, &Block), (Without<Active>, Without<Wall>)>,
+    mut query: Query<(Entity, &mut Block, &mut Transform), (Without<Active>, Without<Wall>)>,
     found_rows: Vec<i32>,
     mut commands: Commands,
 ) {
-    for (entity, block) in &query {
-        if !found_rows.contains(&block.grid_pos.y) {
-            continue
+    // Clear lines
+    for (entity, block, _) in &query {
+        if found_rows.contains(&block.grid_pos.y) {
+            commands.entity(entity).despawn();
         }
-        commands.entity(entity).despawn();
+    }
+
+    // Move down lines
+    for (_, mut block, mut transform) in &mut query {
+        let cleared_below = found_rows.iter().filter(|&&row| row < block.grid_pos.y).count() as f32;
+        if cleared_below > 0.0 {
+            block.grid_pos.y -= cleared_below as i32;
+            transform.translation.y -= cleared_below * (TILE_SIZE as f32); // Adjust TILE_SIZE to match your game's tile size
+        }
     }
 }
