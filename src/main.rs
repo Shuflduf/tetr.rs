@@ -79,23 +79,6 @@ fn setup_board(
     asset_server: Res<AssetServer>,
     atlas: Res<AtlasTextureHandle>,
 ) {
-    commands.spawn((
-        SpriteBundle {
-            texture: atlas.data.clone(),
-            transform: Transform::from_xyz(0.0, 0.0, 0.0),
-            ..default()
-        },
-        TextureAtlas {
-            layout: asset_server.add(TextureAtlasLayout::from_grid(
-                UVec2::splat(TILE_SIZE as u32),
-                12,
-                1,
-                None,
-                None
-            )),
-            index: 8
-        },
-    ));
     for i in get_board_pos() {
         commands.spawn((
             Wall,
@@ -170,10 +153,10 @@ fn clear_lines(
 
     // Move down lines
     for (_, mut block, mut transform) in &mut query {
-        let cleared_below = found_rows.iter().filter(|&&row| row < block.grid_pos.y).count() as f32;
-        if cleared_below > 0.0 {
-            block.grid_pos.y -= cleared_below as i32;
-            transform.translation.y -= cleared_below * (TILE_SIZE as f32); // Adjust TILE_SIZE to match your game's tile size
+        let cleared_below = found_rows.iter().filter(|&&row| row < block.grid_pos.y).count() as i32;
+        if cleared_below > 0 {
+            block.grid_pos.y -= cleared_below;
+            transform.translation.y -= (cleared_below * TILE_SIZE) as f32; // Adjust TILE_SIZE to match your game's tile size
         }
     }
 }

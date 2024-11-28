@@ -17,8 +17,8 @@ pub fn spawn_piece(
     mut commands: Commands,
 ) {
     const PIECE_SPAWN_POS: IVec2 = IVec2::new(-2, 8);
-    //let piece_type_index = rand::thread_rng().gen_range(0..=6);
-    let piece_type_index = 2;
+    let piece_type_index = rand::thread_rng().gen_range(0..=6);
+    //let piece_type_index = 2;
     let piece_data = PIECES[piece_type_index][0];
     for (i, block_data) in piece_data
         .iter()
