@@ -1,3 +1,4 @@
+use bevy::math::ivec2;
 use bevy::prelude::*;
 use bevy::utils::HashSet;
 use rand::Rng;
@@ -32,7 +33,7 @@ pub fn spawn_piece(
             },
             Active {
                 offset: PIECE_SPAWN_POS,
-                rotation: 0,
+                rotation: 2,
                 block_index: i,
             },
             SpriteBundle {
@@ -78,10 +79,11 @@ pub fn move_piece(
         .collect();
     // FOR DEBUGGING
     {
-
+        let full_collision: HashSet<IVec2> = collision.clone().into_iter().collect();
+        let base_collision: HashSet<IVec2> = get_board_pos().into_iter().collect();
+        let difference = full_collision.difference(&base_collision);
+        //println!("{0:?}", difference);
     }
-    let difference: HashSet<IVec2> = collision.into_iter().collect::<HashSet<IVec2>>().difference(&get_board_pos());
-    println!("{0:?}", difference);
 
     let mut piece_placed = false;
     for (entity, mut transform, atlas, mut active, mut block) in &mut active_query {
@@ -96,16 +98,17 @@ pub fn move_piece(
             temp_movement.y -= 1;
         }
         if keys.just_pressed(KeyCode::ArrowLeft) {
-            temp_rotation += 3;
+            temp_rotation += 1;
         }
         if keys.just_pressed(KeyCode::ArrowRight) {
-            temp_rotation += 1;
+            temp_rotation += 3;
         }
         temp_rotation %= 4;
 
         // The Collision Part 😱😱
         let piece_data = PIECES[atlas.index][temp_rotation]
             .map(|block| block.as_ivec2() * IVec2::new(1, 1));
+        let block_data = piece_data[active.block_index];
 
         if hard_drop {
             while can_move(&piece_data, &collision, active.offset + DOWN) {
@@ -115,14 +118,14 @@ pub fn move_piece(
             }
         }
         else if can_move(&piece_data, &collision, temp_movement) {
-            let block_data = piece_data[active.block_index];
             active.offset = temp_movement;
             block.grid_pos = active.offset + block_data;
             active.rotation = temp_rotation;
             println!("Actual: {0:?}", block.grid_pos);
+            println!("Translation: {0:?}", (transform.translation / (TILE_SIZE as f32)).as_ivec3());
             transform.translation = Vec3::new(
                 (active.offset.x + block_data.x) as f32,
-                (active.offset.y - block_data.y) as f32,
+                (active.offset.y + block_data.y) as f32,
                 0.0
             ) * TILE_SIZE as f32;
         }

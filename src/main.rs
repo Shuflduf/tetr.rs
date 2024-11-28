@@ -79,6 +79,23 @@ fn setup_board(
     asset_server: Res<AssetServer>,
     atlas: Res<AtlasTextureHandle>,
 ) {
+    commands.spawn((
+        SpriteBundle {
+            texture: atlas.data.clone(),
+            transform: Transform::from_xyz(0.0, 0.0, 0.0),
+            ..default()
+        },
+        TextureAtlas {
+            layout: asset_server.add(TextureAtlasLayout::from_grid(
+                UVec2::splat(TILE_SIZE as u32),
+                12,
+                1,
+                None,
+                None
+            )),
+            index: 8
+        },
+    ));
     for i in get_board_pos() {
         commands.spawn((
             Wall,
