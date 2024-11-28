@@ -123,6 +123,7 @@ fn setup_board(
 
 fn check_board(
     query: Query<(Entity, &Block), (Without<Active>, Without<Wall>)>,
+    commands: Commands,
 ) {
     let grid_positions: Vec<IVec2> = query.iter()
         .map(|(_, block)| 
@@ -150,4 +151,20 @@ fn check_board(
         }
     }
     println!("Found: {found_rows:?}");
+    if !found_rows.is_empty() {
+        clear_lines(query, found_rows, commands);
+    }
+}
+
+fn clear_lines(
+    query: Query<(Entity, &Block), (Without<Active>, Without<Wall>)>,
+    found_rows: Vec<i32>,
+    mut commands: Commands,
+) {
+    for (entity, block) in &query {
+        if !found_rows.contains(&block.grid_pos.y) {
+            continue
+        }
+        commands.entity(entity).despawn();
+    }
 }
