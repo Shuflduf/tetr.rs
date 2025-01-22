@@ -38,17 +38,13 @@ jobs:
         git checkout --orphan web
         git reset --hard
         
-        # Just keep index.html, assets, and wasm
-        find . -maxdepth 1 ! -name '.' ! -name '.git' ! -name 'index.html' ! -name 'tetrrs.wasm' ! -name 'assets' -exec rm -rf {} +
+        # Explicitly copy files we need from main branch
+        git checkout main -- index.html assets
         
-        # Add and commit
-        git add -A
+        # Add all files and commit
+        git add index.html assets tetrrs.wasm
         echo "Files to be committed:"
         git status
-        git commit -m "Deploy web build"
-        
-        # Force push to web branch
-        git push -f origin web
         git commit -m "Deploy web build"
         
         # Force push to web branch
