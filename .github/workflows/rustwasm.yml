@@ -34,18 +34,10 @@ jobs:
         git config --global user.name "github-actions[bot]"
         git config --global user.email "github-actions[bot]@users.noreply.github.com"
         
-        # Fetch and checkout web branch
-        git fetch origin web
-        git checkout web
+        # Remove everything except what we want to deploy
+        find . -mindepth 1 ! -name 'index.html' ! -name 'assets' ! -name 'tetrrs.wasm' ! -name '.git' -exec rm -rf {} +
         
-        # Remove old files but DO NOT touch index.html
-        rm -rf assets tetrrs.wasm
-        
-        # Copy new files from previous build
-        cp -r ../assets .
-        cp ../tetrrs.wasm .
-        
-        # Commit and push
+        # Force push to web branch (this will overwrite web branch with exactly these files)
         git add -A
-        git commit -m "Update WASM and assets [skip ci]"
-        git push origin web
+        git commit -m "Deploy game"
+        git push origin main:web --force
