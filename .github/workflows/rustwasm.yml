@@ -40,10 +40,13 @@ jobs:
       run: |
         git config --global user.name "github-actions[bot]"
         git config --global user.email "github-actions[bot]@users.noreply.github.com"
-        git checkout -b web
+        # Create a new branch for the web content
+        git checkout --orphan web
         # Remove all files except the ones we want to keep
-        find . -not -name '.' -not -name '.git' -not -name 'index.html' -not -name 'tetrrs.wasm' -not -name 'assets' -not -path './assets/*' -exec rm -rf {} +
+        git rm -rf .
+        cp tetrrs.wasm .
+        git checkout main -- index.html assets/
         # Stage the necessary files
-        git add index.html tetrrs.wasm assets/
+        git add tetrrs.wasm index.html assets/
         git commit -m "Update WASM file"
         git push origin web --force
