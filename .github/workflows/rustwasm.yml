@@ -28,7 +28,6 @@ jobs:
 
     - name: Copy the WASM file
       run: cp target/wasm32-unknown-unknown/release/tetrrs.wasm .
-
     - name: Commit and push the WASM file and assets to web branch
       run: |
         git config --global user.name "github-actions[bot]"
@@ -40,12 +39,23 @@ jobs:
         # Checkout the web branch or create it if it doesn't exist
         if git show-ref --quiet refs/heads/web; then
           git checkout web
+          git pull origin web
         else
           git checkout --orphan web
         fi
+
+        # Preserve the existing index.html
+        cp index.html /tmp/index.html
         
-        # Remove all files except .git and index.html
-        find . -maxdepth 1 ! -name '.' ! -name '.git' ! -name 'index.html' ! -name 'tetrrs.wasm' ! -name 'assets' -exec rm -rf {} +
+        # Remove all files except .git
+        find . -maxdepth 1 ! -name '.' ! -name '.git' -exec rm -rf {} +
+
+        # Restore the preserved index.html
+        cp /tmp/index.html ./index.html
+
+        # Copy the new wasm file and assets directory
+        cp ../tetrrs.wasm ./tetrrs.wasm
+        cp -r ../assets ./assets
         
         # Add and commit the changes
         git add -A
