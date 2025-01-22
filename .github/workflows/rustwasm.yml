@@ -26,27 +26,34 @@ jobs:
     - name: Build the Macroquad project
       run: cargo build --release --target wasm32-unknown-unknown
 
-    - name: Verify WASM file
-      run: |
-        if [ ! -f target/wasm32-unknown-unknown/release/tetrrs.wasm ]; then
-          echo "Error: WASM file not found!"
-          exit 1
-        fi
-
     - name: Move the WASM file
       run: cp target/wasm32-unknown-unknown/release/tetrrs.wasm .
 
-    - name: Commit and push the WASM file
+    - name: Commit and push the WASM file and assets to web branch
       run: |
         git config --global user.name "github-actions[bot]"
         git config --global user.email "github-actions[bot]@users.noreply.github.com"
-        # Create a new branch for the web content
-        git checkout --orphan web
-        # Remove all files except the ones we want to keep
-        git rm -rf .
-        cp tetrrs.wasm .
-        git checkout main -- index.html assets/
-        # Stage the necessary files
-        git add tetrrs.wasm index.html assets/
-        git commit -m "Update WASM file"
-        git push origin web --force
+        
+        # Fetch all branches
+        git fetch --all
+        
+        # Checkout the web branch or create it if it doesn't exist
+        if git show-ref --quiet refs/heads/web; then
+          git checkout web
+        else
+          git checkout --orphan web
+        fi
+        
+        # Remove all files except .git and index.html
+        find . -maxdepth 1 ! -name '.' ! -name '.git' ! -name 'index.html' -exec rm -rf {} +
+        
+        # Copy the new wasm file and assets directory
+        cp tetrrs.wasm ./tetrrs.wasm
+        cp -r assets ./assets
+        
+        # Add and commit the changes
+        git add -A
+        git commit -m "Deploy new WASM build and assets"
+        
+        # Push the changes to the web branch
+        git push -f origin web
