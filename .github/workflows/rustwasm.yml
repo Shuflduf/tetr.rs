@@ -26,8 +26,8 @@ jobs:
     - name: Build the Macroquad project
       run: cargo build --release --target wasm32-unknown-unknown
 
-    - name: Move the WASM file
-      run: cp target/wasm32-unknown-unknown/release/tetrrs.wasm ./tetrrs.wasm
+    - name: Copy the WASM file
+      run: cp target/wasm32-unknown-unknown/release/tetrrs.wasm .
 
     - name: Commit and push the WASM file and assets to web branch
       run: |
@@ -45,11 +45,7 @@ jobs:
         fi
         
         # Remove all files except .git and index.html
-        find . -maxdepth 1 ! -name '.' ! -name '.git' ! -name 'index.html' -exec rm -rf {} +
-
-        # Copy the new wasm file and assets directory
-        cp ./tetrrs.wasm ./tetrrs.wasm
-        cp -r ./assets ./assets
+        find . -maxdepth 1 ! -name '.' ! -name '.git' ! -name 'index.html' ! -name 'tetrrs.wasm' ! -name 'assets' -exec rm -rf {} +
         
         # Add and commit the changes
         git add -A
