@@ -26,30 +26,26 @@ jobs:
     - name: Build the Macroquad project
       run: cargo build --release --target wasm32-unknown-unknown
 
-    - name: Copy the WASM file
-      run: cp target/wasm32-unknown-unknown/release/tetrrs.wasm .
+    - name: Move WASM to root
+      run: mv target/wasm32-unknown-unknown/release/tetrrs.wasm ./tetrrs.wasm
 
-    - name: Commit and push the WASM file and assets to web branch
+    - name: Deploy to web branch
       run: |
         git config --global user.name "github-actions[bot]"
         git config --global user.email "github-actions[bot]@users.noreply.github.com"
         
-        # Fetch all branches
-        git fetch --all
-
-        # Checkout the web branch or create it if it doesn't exist
-        if git show-ref --quiet refs/heads/web; then
-          git checkout web
-        else
-          git checkout --orphan web
-        fi
+        # Create and switch to a clean web branch
+        git checkout --orphan web
+        git reset --hard
         
-        # Remove all files except .git and index.html
-        find . -maxdepth 1 ! -name '.' ! -name '.git' ! -name 'index.html' ! -name 'tetrrs.wasm' ! -name 'assets' -exec rm -rf {} +
+        # Explicitly copy files we need from main branch
+        git checkout main -- index.html assets
         
-        # Add and commit the changes
-        git add -A
-        git commit -m "Deploy new WASM build and assets"
+        # Add all files and commit
+        git add index.html assets tetrrs.wasm
+        echo "Files to be committed:"
+        git status
+        git commit -m "Deploy web build"
         
-        # Push the changes to the web branch
+        # Force push to web branch
         git push -f origin web
