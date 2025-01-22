@@ -52,4 +52,4 @@ jobs:
         git commit -m "Deploy new WASM build and assets"
         
         # Push the changes to the web branch
-        git push -f origin web
+        git push origin web
