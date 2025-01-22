@@ -11,7 +11,7 @@ const GRID_SIZE: IVec2 = ivec2(10, 20);
 
 #[macroquad::main("MyGame")]
 async fn main() {
-    rand::srand(time::SystemTime::now().duration_since(time::UNIX_EPOCH).unwrap().as_secs());
+    //rand::srand(time::SystemTime::now().duration_since(time::UNIX_EPOCH).unwrap().as_secs());
     pieces::load_json();
     let texture = load_texture("assets/texture_simple.png").await.unwrap();
     texture.set_filter(FilterMode::Nearest);
