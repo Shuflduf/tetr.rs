@@ -44,6 +44,12 @@ pub struct Piece {
         }
         true
     }
+    pub fn moved(self, dir: IVec2) -> Piece {
+        Piece {
+            pos: self.pos + dir,
+            ..self
+        }
+    }
     pub fn copy(self) -> Piece {
         Piece {
             index: self.index,
@@ -93,7 +99,7 @@ pub fn update(texture: &Texture2D, block_size: f32, offset_x: f32, board: &mut V
             ACTIVE_PIECE = future_piece;
         }
 
-        if ACTIVE_PIECE.pos.y > 10 {
+        if !ACTIVE_PIECE.moved(ivec2(0, 1)).can_move(board) {
             ACTIVE_PIECE.add_to_board(board);
             ACTIVE_PIECE = Piece {
                 index: 0,
