@@ -16,3 +16,14 @@ pub fn full_lines(board: &[Block]) -> Vec<i32> {
     }
     lines
 }
+
+pub fn clear_lines(board: &mut Vec<Block>, lines: &[i32]) {
+    for line in lines.iter() {
+        board.retain(|block| block.pos.y != *line || block.index == 7);
+        for block in board.iter_mut() {
+            if block.pos.y < *line && block.index != 7 {
+                block.pos.y += 1;
+            }
+        }
+    }
+}
