@@ -1,5 +1,4 @@
 use macroquad::{math::IVec2, rand};
-use rand::rand;
 use crate::*;
 
 //const NULL_PIECE: Piece = Piece {
@@ -33,7 +32,7 @@ pub struct Piece {
             for pos in SRS_DATA["pieces"][self.index as usize][self.rotation as usize].as_array().unwrap() {
                 let x = pos[0].as_i64().unwrap() as i32 + self.pos.x;
                 let y = pos[1].as_i64().unwrap() as i32 + self.pos.y;
-                if !(0..10).contains(&x) || y >= 20 {
+                if !(0..GRID_SIZE.x + 1).contains(&x) || y >= 20 {
                     return false;
                 }
                 for block in board.iter() {
@@ -86,8 +85,13 @@ pub fn update(texture: &Texture2D, block_size: f32, offset_x: f32, board: &mut V
         } else if is_key_pressed(KeyCode::D) {
             future_piece.pos.x += 1;
         }
-        if is_key_pressed(KeyCode::S) {
+        if is_key_pressed(KeyCode::W) {
             future_piece.pos.y += 1;
+        }
+        if is_key_pressed(KeyCode::S) {
+            while future_piece.moved(ivec2(0, 1)).can_move(board) {
+                future_piece.pos.y += 1;
+            }
         }
         if is_key_pressed(KeyCode::Left){
             future_piece.rotation += 3;
