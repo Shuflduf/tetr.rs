@@ -39,7 +39,6 @@ async fn main() {
             );
         }
         if pieces::update(&texture, block_size, offset_x, &mut collision) {
-            //println!("{:?}", full_lines(&collision))
             let full_lines = full_lines(&collision);
             clear_lines(&mut collision, &full_lines);
         }
