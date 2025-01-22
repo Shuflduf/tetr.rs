@@ -47,7 +47,7 @@ async fn main() {
             }
         }
 
-        pieces::draw(&texture);
+        pieces::update(&texture);
 
         next_frame().await
     }

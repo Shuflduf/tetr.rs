@@ -14,7 +14,7 @@ struct Piece {
     pub pos: IVec2,
 }
 
-static ACTIVE_PIECE: Piece = Piece {
+static mut ACTIVE_PIECE: Piece = Piece {
     index: 5,
     rotation: 0,
     pos: START_POS,
@@ -28,8 +28,14 @@ pub fn load_json() {
     }
 }
 
-pub fn draw(texture: &Texture2D) {
+pub fn update(texture: &Texture2D) {
     unsafe{
+        if is_key_pressed(KeyCode::A) {
+            ACTIVE_PIECE.pos.x -= 1;
+        } else if is_key_pressed(KeyCode::D) {
+            ACTIVE_PIECE.pos.x += 1;
+        }
+
         for pos in SRS_DATA["pieces"][ACTIVE_PIECE.index as usize][ACTIVE_PIECE.rotation as usize].as_array().unwrap() {
             let x = pos[0].as_i64().unwrap() as i32 + ACTIVE_PIECE.pos.x;
             let y = pos[1].as_i64().unwrap() as i32 + ACTIVE_PIECE.pos.y;
