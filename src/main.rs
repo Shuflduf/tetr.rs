@@ -1,7 +1,9 @@
 use macroquad::prelude::*;
 use pieces::Block;
+use board::*;
 
 mod pieces;
+mod board;
 
 const GRID_SIZE: IVec2 = ivec2(10, 20);
 
@@ -33,7 +35,9 @@ async fn main() {
                 params,
             );
         }
-        pieces::update(&texture, block_size, offset_x, &mut collision);
+        if pieces::update(&texture, block_size, offset_x, &mut collision) {
+            println!("{:?}", full_lines(&collision))
+        }
         next_frame().await
     }
 }

@@ -77,7 +77,8 @@ pub fn load_json() {
     }
 }
 
-pub fn update(texture: &Texture2D, block_size: f32, offset_x: f32, board: &mut Vec<Block>) {
+pub fn update(texture: &Texture2D, block_size: f32, offset_x: f32, board: &mut Vec<Block>) -> bool {
+    let mut placed = false;
     unsafe{
         let mut future_piece = ACTIVE_PIECE.copy();
         if is_key_pressed(KeyCode::A) {
@@ -111,6 +112,7 @@ pub fn update(texture: &Texture2D, block_size: f32, offset_x: f32, board: &mut V
                 rotation: 0,
                 pos: START_POS,
             };
+            placed = true;
         }
 
         for pos in SRS_DATA["pieces"][ACTIVE_PIECE.index as usize][ACTIVE_PIECE.rotation as usize].as_array().unwrap() {
@@ -130,4 +132,5 @@ pub fn update(texture: &Texture2D, block_size: f32, offset_x: f32, board: &mut V
             );
         }
     }
+    placed
 }
