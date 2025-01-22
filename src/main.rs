@@ -2,9 +2,13 @@ use macroquad::prelude::*;
 
 mod pieces;
 
+const GRID_SIZE: IVec2 = ivec2(10, 20);
+pub static mut BLOCK_SIZE: f32 = 0.0;
+pub static mut OFFSET_X: f32 = 0.0;
+
 #[macroquad::main("MyGame")]
 async fn main() {
-    const GRID_SIZE: IVec2 = ivec2(10, 20);
+    pieces::load_json();
     let texture = load_texture("assets/texture_simple.png").await.unwrap();
     texture.set_filter(FilterMode::Nearest);
 
@@ -22,32 +26,28 @@ async fn main() {
     loop {
         clear_background(BLACK);
 
-        // Draw board
-        let block_size = screen_height() / (GRID_SIZE.y as f32 + 1.0);
-        let board_width = block_size * (GRID_SIZE.x as f32 + 2.0);
-        let offset_x = (screen_width() - board_width) / 2.0;
-        for block in bounds.iter() {
-            let params = DrawTextureParams {
-                dest_size: Some(vec2(block_size, block_size)),
-                source: get_rect_from_index(7),
-                ..Default::default()
-            };
-            draw_texture_ex(
-                &texture,
-                offset_x + block.x as f32 * block_size,
-                block.y as f32 * block_size,
-                WHITE,
-                params,
-            );
+        unsafe {
+            // Draw board
+            BLOCK_SIZE = screen_height() / (GRID_SIZE.y as f32 + 1.0);
+            let board_width = BLOCK_SIZE * (GRID_SIZE.x as f32 + 2.0);
+            OFFSET_X = (screen_width() - board_width) / 2.0;
+            for block in bounds.iter() {
+                let params = DrawTextureParams {
+                    dest_size: Some(vec2(BLOCK_SIZE, BLOCK_SIZE)),
+                    source: get_rect_from_index(7),
+                    ..Default::default()
+                };
+                draw_texture_ex(
+                    &texture,
+                    OFFSET_X + block.x as f32 * BLOCK_SIZE,
+                    block.y as f32 * BLOCK_SIZE,
+                    WHITE,
+                    params,
+                );
+            }
         }
 
-        draw_rectangle(
-            0.0,
-            0.0,
-            20.0,
-            20.0,
-            YELLOW
-        );
+        pieces::draw(&texture);
 
         next_frame().await
     }
