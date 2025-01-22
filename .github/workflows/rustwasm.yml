@@ -31,13 +31,15 @@ jobs:
 
     - name: Deploy to web branch
       run: |
+        cd $GITHUB_WORKSPACE
+        
         git config --global user.name "github-actions[bot]"
         git config --global user.email "github-actions[bot]@users.noreply.github.com"
         
         # Remove everything except what we want to deploy
         find . -mindepth 1 ! -name 'index.html' ! -name 'assets' ! -name 'tetrrs.wasm' ! -name '.git' -exec rm -rf {} +
         
-        # Force push to web branch (this will overwrite web branch with exactly these files)
+        # Force push to web branch
         git add -A
-        git commit -m "Deploy game"
+        git commit -m "Deploy game [skip ci]"
         git push origin main:web --force
