@@ -49,8 +49,3 @@ jobs:
         git add -A
         git commit -m "Update WASM and assets [skip ci]"
         git push origin web
-        
-        # Commit and push changes
-        git add -A
-        git commit -m "Update WASM and assets"
-        git push origin web
