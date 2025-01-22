@@ -1,5 +1,7 @@
 use macroquad::prelude::*;
 
+mod pieces;
+
 #[macroquad::main("MyGame")]
 async fn main() {
     const GRID_SIZE: IVec2 = ivec2(10, 20);
