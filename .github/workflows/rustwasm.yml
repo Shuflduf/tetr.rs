@@ -31,29 +31,24 @@ jobs:
 
     - name: Deploy to web branch
       run: |
-        # Configure git
         git config --global user.name "github-actions[bot]"
         git config --global user.email "github-actions[bot]@users.noreply.github.com"
-        
-        # Create temporary directory and save new files
-        mkdir temp
-        cp -r assets temp/
-        cp tetrrs.wasm temp/
-        
-        # Clean untracked files
-        git clean -fd
         
         # Fetch and checkout web branch
         git fetch origin web
         git checkout web
         
-        # Save index.html and clean directory
-        cp index.html temp/
-        git rm -rf *
+        # Remove old files but DO NOT touch index.html
+        rm -rf assets tetrrs.wasm
         
-        # Move all files back
-        mv temp/* ./
-        rm -rf temp
+        # Copy new files from previous build
+        cp -r ../assets .
+        cp ../tetrrs.wasm .
+        
+        # Commit and push
+        git add -A
+        git commit -m "Update WASM and assets [skip ci]"
+        git push origin web
         
         # Commit and push changes
         git add -A
