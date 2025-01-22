@@ -1,0 +1,40 @@
+name: Build and Deploy Macroquad to WASM
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v2
+
+    - name: Set up Rust
+      uses: actions-rs/toolchain@v1
+      with:
+        toolchain: stable
+        profile: minimal
+
+    - name: Add wasm32 target
+      run: rustup target add wasm32-unknown-unknown
+
+    - name: Build the Macroquad project
+      run: cargo build --release --target wasm32-unknown-unknown
+
+    - name: Move the WASM file
+      run: cp target/wasm32-unknown-unknown/release/tetrrs.wasm .
+
+    - name: Commit and push the WASM file
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      run: |
+        git config --global user.name "github-actions[bot]"
+        git config --global user.email "github-actions[bot]@users.noreply.github.com"
+        git checkout -b web
+        git add tetrrs.wasm
+        git commit -m "Update WASM file"
+        git push origin web --force
