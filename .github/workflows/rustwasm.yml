@@ -36,14 +36,14 @@ jobs:
     - name: Move the WASM file
       run: cp target/wasm32-unknown-unknown/release/tetrrs.wasm .
 
-    - name: Clean up the web branch and add necessary files
+    - name: Commit and push the WASM file
       run: |
         git config --global user.name "github-actions[bot]"
         git config --global user.email "github-actions[bot]@users.noreply.github.com"
         git checkout -b web
-        # Remove everything except the files you want to keep
+        # Remove all files except the ones we want to keep
         find . -not -name '.' -not -name '.git' -not -name 'index.html' -not -name 'tetrrs.wasm' -not -name 'assets' -not -path './assets/*' -exec rm -rf {} +
-        # Ensure the necessary files are present and staged for commit
+        # Stage the necessary files
         git add index.html tetrrs.wasm assets/
         git commit -m "Update WASM file"
         git push origin web --force
