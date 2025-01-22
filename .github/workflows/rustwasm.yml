@@ -31,13 +31,9 @@ jobs:
         git config --global user.name "github-actions[bot]"
         git config --global user.email "github-actions[bot]@users.noreply.github.com"
 
-        # Fetch all branches
-        git fetch --all
-
-        # Checkout the web branch or create it if it doesn't exist
+        # Checkout the web branch and pull the latest changes
         git checkout web
         git pull origin web
-
 
         # Move the new WASM file to the root
         mv target/wasm32-unknown-unknown/release/tetrrs.wasm ./tetrrs.wasm
@@ -45,8 +41,10 @@ jobs:
         # Delete everything except tetrrs.wasm and index.html
         find . -maxdepth 1 ! -name '.' ! -name '.git' ! -name 'tetrrs.wasm' ! -name 'index.html' -exec rm -rf {} +
 
-        # Add and commit the changes
-        git add tetrrs.wasm
+        # Stage all changes
+        git add -A
+
+        # Commit the changes
         git commit -m "Deploy new WASM build"
 
         # Push the changes to the web branch
