@@ -35,26 +35,23 @@ jobs:
         git config --global user.name "github-actions[bot]"
         git config --global user.email "github-actions[bot]@users.noreply.github.com"
         
-        # Create temporary directory
+        # Create temporary directory and save new files
         mkdir temp
-        
-        # Fetch the web branch and check it out
-        git fetch origin web
-        git checkout web
-        
-        # Save index.html
-        cp index.html temp/
-        
-        # Clean directory except temp
-        git rm -rf *
-        
-        # Get new files from main
-        git checkout main
         cp -r assets temp/
         cp tetrrs.wasm temp/
         
-        # Switch back to web branch and update content
+        # Clean untracked files
+        git clean -fd
+        
+        # Fetch and checkout web branch
+        git fetch origin web
         git checkout web
+        
+        # Save index.html and clean directory
+        cp index.html temp/
+        git rm -rf *
+        
+        # Move all files back
         mv temp/* ./
         rm -rf temp
         
