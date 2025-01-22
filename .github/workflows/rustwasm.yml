@@ -27,7 +27,7 @@ jobs:
       run: cargo build --release --target wasm32-unknown-unknown
 
     - name: Move the WASM file
-      run: cp target/wasm32-unknown-unknown/release/tetrrs.wasm .
+      run: cp target/wasm32-unknown-unknown/release/tetrrs.wasm ./tetrrs.wasm
 
     - name: Commit and push the WASM file and assets to web branch
       run: |
@@ -36,7 +36,7 @@ jobs:
         
         # Fetch all branches
         git fetch --all
-        
+
         # Checkout the web branch or create it if it doesn't exist
         if git show-ref --quiet refs/heads/web; then
           git checkout web
@@ -46,10 +46,10 @@ jobs:
         
         # Remove all files except .git and index.html
         find . -maxdepth 1 ! -name '.' ! -name '.git' ! -name 'index.html' -exec rm -rf {} +
-        
+
         # Copy the new wasm file and assets directory
-        cp tetrrs.wasm ./tetrrs.wasm
-        cp -r assets ./assets
+        cp ./tetrrs.wasm ./tetrrs.wasm
+        cp -r ./assets ./assets
         
         # Add and commit the changes
         git add -A
