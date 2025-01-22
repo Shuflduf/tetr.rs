@@ -35,12 +35,9 @@ jobs:
         git fetch --all
 
         # Checkout the web branch or create it if it doesn't exist
-        if git show-ref --quiet refs/heads/web; then
-          git checkout web
-          git pull origin web
-        else
-          git checkout --orphan web
-        fi
+        git checkout web
+        git pull origin web
+
 
         # Move the new WASM file to the root
         mv target/wasm32-unknown-unknown/release/tetrrs.wasm ./tetrrs.wasm
