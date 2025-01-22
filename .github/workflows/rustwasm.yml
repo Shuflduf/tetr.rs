@@ -26,26 +26,34 @@ jobs:
     - name: Build the Macroquad project
       run: cargo build --release --target wasm32-unknown-unknown
 
+    - name: Move WASM to root
+      run: mv target/wasm32-unknown-unknown/release/tetrrs.wasm ./tetrrs.wasm
+
     - name: Deploy to web branch
       run: |
         git config --global user.name "github-actions[bot]"
         git config --global user.email "github-actions[bot]@users.noreply.github.com"
 
-        # Checkout the web branch and pull the latest changes
+        # Create a temporary directory and copy index.html
+        mkdir temp
         git checkout web
-        git pull origin web
-
-        # Move the new WASM file to the root
-        mv target/wasm32-unknown-unknown/release/tetrrs.wasm ./tetrrs.wasm
-
-        # Delete everything except tetrrs.wasm and index.html
-        find . -maxdepth 1 ! -name '.' ! -name '.git' ! -name 'tetrrs.wasm' ! -name 'index.html' -exec rm -rf {} +
-
-        # Stage all changes
+        cp index.html temp/
+        
+        # Clean everything except the temp directory
+        rm -rf assets tetrrs.wasm
+        
+        # Switch back to main to get new files
+        git checkout main
+        cp -r assets temp/
+        cp tetrrs.wasm temp/
+        
+        # Switch to web branch and replace content
+        git checkout web
+        git rm -rf *
+        mv temp/* ./
+        rm -rf temp
+        
+        # Stage and commit changes
         git add -A
-
-        # Commit the changes
-        git commit -m "Deploy new WASM build"
-
-        # Push the changes to the web branch
+        git commit -m "Update WASM and assets"
         git push origin web
