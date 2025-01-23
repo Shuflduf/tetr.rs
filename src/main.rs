@@ -4,6 +4,7 @@ use board::*;
 
 mod pieces;
 mod board;
+mod bag;
 
 const GRID_SIZE: IVec2 = ivec2(10, 20);
 
@@ -11,7 +12,7 @@ const GRID_SIZE: IVec2 = ivec2(10, 20);
 async fn main() {
     // yeah you get the same game everytime because the web version sucks
     //rand::srand(time::SystemTime::now().duration_since(time::UNIX_EPOCH).unwrap().as_secs());
-    pieces::load_json();
+    pieces::ready();
     let texture = load_texture("assets/texture_simple.png").await.unwrap();
     texture.set_filter(FilterMode::Nearest);
     let mut collision: Vec<Block> = reset_board();

@@ -6,7 +6,7 @@ use crate::*;
 //    rotation: -1,
 //    pos: IVec2::ZERO,
 //};
-const START_POS: IVec2 = IVec2 { x: 4, y: 0 };
+pub const START_POS: IVec2 = IVec2 { x: 4, y: 0 };
 
 #[derive(Clone, Copy)]
 pub struct Piece {
@@ -70,9 +70,10 @@ static mut ACTIVE_PIECE: Piece = Piece {
 };
 static mut SRS_DATA: serde_json::Value = serde_json::Value::Null;
 
-pub fn load_json() {
+pub fn ready() {
     let json = include_str!("srs.json");
     unsafe {
+        //ACTIVE_PIECE = bag::next_piece();
         SRS_DATA = serde_json::from_str(json).unwrap();
     }
 }
@@ -107,11 +108,12 @@ pub fn update(texture: &Texture2D, block_size: f32, offset_x: f32, board: &mut V
 
         if !ACTIVE_PIECE.moved(ivec2(0, 1)).can_move(board) {
             ACTIVE_PIECE.add_to_board(board);
-            ACTIVE_PIECE = Piece {
-                index: rand::gen_range(0, 7),
-                rotation: 0,
-                pos: START_POS,
-            };
+            ACTIVE_PIECE = bag::next_piece();
+            //ACTIVE_PIECE = Piece {
+            //    index: rand::gen_range(0, 7),
+            //    rotation: 0,
+            //    pos: START_POS,
+            //};
             placed = true;
         }
 
