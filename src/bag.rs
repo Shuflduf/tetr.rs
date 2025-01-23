@@ -1,5 +1,3 @@
-//use rand::seq::SliceRandom;
-
 use macroquad::{rand::{srand, ChooseRandom}, time};
 
 use crate::pieces::{self, Piece};

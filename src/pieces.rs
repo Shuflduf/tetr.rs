@@ -73,7 +73,7 @@ static mut SRS_DATA: serde_json::Value = serde_json::Value::Null;
 pub fn ready() {
     let json = include_str!("srs.json");
     unsafe {
-        //ACTIVE_PIECE = bag::next_piece();
+        ACTIVE_PIECE = bag::next_piece();
         SRS_DATA = serde_json::from_str(json).unwrap();
     }
 }
@@ -104,16 +104,30 @@ pub fn update(texture: &Texture2D, block_size: f32, offset_x: f32, board: &mut V
         }
         if future_piece.can_move(board) {
             ACTIVE_PIECE = future_piece;
+        } else if future_piece.rotation != ACTIVE_PIECE.rotation {
+            let kick_index = get_kick_index(ACTIVE_PIECE.rotation, future_piece.rotation);
+            let kick_table = {
+                if ACTIVE_PIECE.index != 4 {
+                    SRS_DATA["kicks"].as_array().unwrap()
+                } else {
+                    SRS_DATA["kicks_i"].as_array().unwrap()
+                }
+            };
+            for kick in kick_table[kick_index as usize].as_array().unwrap() {
+                let x = kick[0].as_i64().unwrap() as i32;
+                let y = kick[1].as_i64().unwrap() as i32;
+                let pos = IVec2 { x, y };
+                let new_piece = future_piece.moved(pos);
+                if new_piece.can_move(board) {
+                    ACTIVE_PIECE = new_piece;
+                    break;
+                }
+            }
         }
 
         if !ACTIVE_PIECE.moved(ivec2(0, 1)).can_move(board) {
             ACTIVE_PIECE.add_to_board(board);
             ACTIVE_PIECE = bag::next_piece();
-            //ACTIVE_PIECE = Piece {
-            //    index: rand::gen_range(0, 7),
-            //    rotation: 0,
-            //    pos: START_POS,
-            //};
             placed = true;
         }
 
@@ -135,4 +149,13 @@ pub fn update(texture: &Texture2D, block_size: f32, offset_x: f32, board: &mut V
         }
     }
     placed
+}
+
+// dont try to do 180 spins with this
+fn get_kick_index(before: i8, after: i8) -> i8 {
+    if after == (before + 1) % 4 {
+        before * 2
+    } else {
+        (before * 2 + 7) % 8
+    }
 }
