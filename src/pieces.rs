@@ -91,9 +91,10 @@ pub fn update(texture: &Texture2D, block_size: f32, offset_x: f32, board: &mut V
             future_piece.pos.y += 1;
         }
         if is_key_pressed(KeyCode::S) {
-            while future_piece.moved(ivec2(0, 1)).can_move(board) {
-                future_piece.pos.y += 1;
-            }
+            //while future_piece.moved(ivec2(0, 1)).can_move(board) {
+            //    future_piece.pos.y += 1;
+            //}
+            future_piece.pos.y += get_drop_distance(board);
         }
         if is_key_pressed(KeyCode::Left){
             future_piece.rotation += 3;
@@ -144,11 +145,30 @@ pub fn update(texture: &Texture2D, block_size: f32, offset_x: f32, board: &mut V
                 offset_x + x as f32 * block_size,
                 y as f32 * block_size,
                 WHITE,
-                params,
+                params.clone(),
+            );
+
+            // draw ghost
+            draw_texture_ex(
+                texture,
+                offset_x + x as f32 * block_size,
+                (y + get_drop_distance(board)) as f32 * block_size,
+                Color::new(1.0, 1.0, 1.0, 0.2),
+                params
             );
         }
     }
     placed
+}
+
+pub fn get_drop_distance(board: &[Block]) -> i32 {
+    unsafe{
+        let mut future_piece = ACTIVE_PIECE.copy();
+        while future_piece.moved(ivec2(0, 1)).can_move(board) {
+            future_piece.pos.y += 1;
+        }
+        future_piece.pos.y - ACTIVE_PIECE.pos.y
+    }
 }
 
 // dont try to do 180 spins with this

@@ -35,7 +35,7 @@ async fn main() {
                 offset_x + block.pos.x as f32 * block_size,
                 block.pos.y as f32 * block_size,
                 WHITE,
-                params,
+                params.clone(),
             );
         }
         if pieces::update(&texture, block_size, offset_x, &mut collision) {
