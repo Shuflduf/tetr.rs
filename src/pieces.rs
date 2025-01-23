@@ -1,4 +1,4 @@
-use macroquad::{math::IVec2, rand};
+use macroquad::math::IVec2;
 use crate::*;
 
 //const NULL_PIECE: Piece = Piece {
@@ -108,7 +108,7 @@ pub fn update(texture: &Texture2D, block_size: f32, offset_x: f32, board: &mut V
         if !ACTIVE_PIECE.moved(ivec2(0, 1)).can_move(board) {
             ACTIVE_PIECE.add_to_board(board);
             ACTIVE_PIECE = Piece {
-                index: rand::gen_range(0, 7),
+                index: rand lg,
                 rotation: 0,
                 pos: START_POS,
             };
