@@ -108,7 +108,7 @@ pub fn update(texture: &Texture2D, block_size: f32, offset_x: f32, board: &mut V
         if !ACTIVE_PIECE.moved(ivec2(0, 1)).can_move(board) {
             ACTIVE_PIECE.add_to_board(board);
             ACTIVE_PIECE = Piece {
-                index: rand lg,
+                index: rand::gen_range(0, 7),
                 rotation: 0,
                 pos: START_POS,
             };
