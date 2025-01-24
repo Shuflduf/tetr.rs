@@ -4,6 +4,7 @@ use pieces::Block;
 
 mod bag;
 mod board;
+mod hold_piece;
 mod pieces;
 
 const GRID_SIZE: IVec2 = ivec2(10, 20);
@@ -42,6 +43,7 @@ async fn main() {
             clear_lines(&mut collision, &full_lines);
         }
         bag::draw_next_piece(&texture, block_size, offset_x);
+        hold_piece::draw_held_piece(&texture, block_size, offset_x);
         if is_key_pressed(KeyCode::F) {
             is_fullscreen = !is_fullscreen;
             set_fullscreen(is_fullscreen);
