@@ -1,10 +1,10 @@
+use board::*;
 use macroquad::prelude::*;
 use pieces::Block;
-use board::*;
 
-mod pieces;
-mod board;
 mod bag;
+mod board;
+mod pieces;
 
 const GRID_SIZE: IVec2 = ivec2(10, 20);
 

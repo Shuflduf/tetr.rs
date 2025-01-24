@@ -1,4 +1,7 @@
-use macroquad::{rand::{srand, ChooseRandom}, time};
+use macroquad::{
+    rand::{srand, ChooseRandom},
+    time,
+};
 
 use crate::pieces::{self, Piece};
 
@@ -13,15 +16,19 @@ pub fn next_piece() -> Piece {
         BAG = BAG[..(*BAG).len() - 1].to_vec();
 
         last
-    }    
+    }
 }
 
 pub fn reset_bag() {
     unsafe {
         srand(time::get_time() as u64);
-        BAG = (0..7).map(|i| {
-            Piece { index: i, rotation: 0, pos: pieces::START_POS }
-        }).collect();
+        BAG = (0..7)
+            .map(|i| Piece {
+                index: i,
+                rotation: 0,
+                pos: pieces::START_POS,
+            })
+            .collect();
         (*BAG).shuffle();
     }
 }
