@@ -10,12 +10,11 @@ const GRID_SIZE: IVec2 = ivec2(10, 20);
 
 #[macroquad::main("MyGame")]
 async fn main() {
-    // yeah you get the same game everytime because the web version sucks
-    //rand::srand(time::SystemTime::now().duration_since(time::UNIX_EPOCH).unwrap().as_secs());
     pieces::ready();
     let texture = load_texture("assets/texture_simple.png").await.unwrap();
     texture.set_filter(FilterMode::Nearest);
     let mut collision: Vec<Block> = reset_board();
+    let mut is_fullscreen = false;
 
     loop {
         clear_background(BLACK);
@@ -41,6 +40,10 @@ async fn main() {
         if pieces::update(&texture, block_size, offset_x, &mut collision) {
             let full_lines = full_lines(&collision);
             clear_lines(&mut collision, &full_lines);
+        }
+        if is_key_pressed(KeyCode::F) {
+            is_fullscreen = !is_fullscreen;
+            set_fullscreen(is_fullscreen);
         }
         next_frame().await
     }

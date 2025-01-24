@@ -7,6 +7,7 @@ use crate::*;
 //    pos: IVec2::ZERO,
 //};
 pub const START_POS: IVec2 = IVec2 { x: 4, y: 0 };
+const GRAVITY_DELAY: f32 = 1.0;
 
 #[derive(Clone, Copy)]
 pub struct Piece {
@@ -69,6 +70,7 @@ static mut ACTIVE_PIECE: Piece = Piece {
     pos: START_POS,
 };
 static mut SRS_DATA: serde_json::Value = serde_json::Value::Null;
+static mut GRAVITY_TIMER: f32 = 0.0;
 
 pub fn ready() {
     let json = include_str!("srs.json");
@@ -81,6 +83,8 @@ pub fn ready() {
 pub fn update(texture: &Texture2D, block_size: f32, offset_x: f32, board: &mut Vec<Block>) -> bool {
     let mut placed = false;
     unsafe{
+        GRAVITY_TIMER += get_frame_time();
+
         let mut future_piece = ACTIVE_PIECE.copy();
         if is_key_pressed(KeyCode::A) {
             future_piece.pos.x -= 1;
@@ -88,12 +92,10 @@ pub fn update(texture: &Texture2D, block_size: f32, offset_x: f32, board: &mut V
             future_piece.pos.x += 1;
         }
         if is_key_pressed(KeyCode::W) {
+            GRAVITY_TIMER = 0.0;
             future_piece.pos.y += 1;
         }
         if is_key_pressed(KeyCode::S) {
-            //while future_piece.moved(ivec2(0, 1)).can_move(board) {
-            //    future_piece.pos.y += 1;
-            //}
             future_piece.pos.y += get_drop_distance(board);
         }
         if is_key_pressed(KeyCode::Left){
@@ -102,6 +104,10 @@ pub fn update(texture: &Texture2D, block_size: f32, offset_x: f32, board: &mut V
         } else if is_key_pressed(KeyCode::Right) {
             future_piece.rotation += 1;
             future_piece.rotation %= 4;
+        }
+        if GRAVITY_TIMER >= GRAVITY_DELAY {
+            future_piece.pos.y += 1;
+            GRAVITY_TIMER = 0.0;
         }
         if future_piece.can_move(board) {
             ACTIVE_PIECE = future_piece;
