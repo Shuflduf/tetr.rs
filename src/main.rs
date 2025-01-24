@@ -8,7 +8,7 @@ mod pieces;
 
 const GRID_SIZE: IVec2 = ivec2(10, 20);
 
-#[macroquad::main("MyGame")]
+#[macroquad::main("tetr.rs")]
 async fn main() {
     pieces::ready();
     let texture = load_texture("assets/texture_simple.png").await.unwrap();
