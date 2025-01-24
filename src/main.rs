@@ -41,6 +41,7 @@ async fn main() {
             let full_lines = full_lines(&collision);
             clear_lines(&mut collision, &full_lines);
         }
+        bag::draw_next_piece(&texture, block_size, offset_x);
         if is_key_pressed(KeyCode::F) {
             is_fullscreen = !is_fullscreen;
             set_fullscreen(is_fullscreen);
@@ -71,6 +72,6 @@ fn reset_board() -> Vec<Block> {
     board
 }
 
-fn get_rect_from_index(index: i32) -> Option<Rect> {
+pub fn get_rect_from_index(index: i32) -> Option<Rect> {
     Some(Rect::new(index as f32 * 32.0 + 4.0, 4.0, 26.0, 26.0))
 }

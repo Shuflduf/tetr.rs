@@ -77,12 +77,12 @@ pub struct Block {
     pub pos: IVec2,
 }
 
+pub static mut SRS_DATA: serde_json::Value = serde_json::Value::Null;
 static mut ACTIVE_PIECE: Piece = Piece {
     index: 0,
     rotation: 0,
     pos: START_POS,
 };
-static mut SRS_DATA: serde_json::Value = serde_json::Value::Null;
 static mut GRAVITY_TIMER: f32 = 0.0;
 static mut LOCK_DELAY_TIMER: f32 = 0.0;
 static mut MAX_LOCK_DELAY_TIMER: f32 = 0.0;
@@ -172,7 +172,9 @@ pub fn update(texture: &Texture2D, block_size: f32, offset_x: f32, board: &mut V
         }
 
         if MAX_LOCK_DELAY_TIMER >= MAX_LOCK_DELAY {
-            ACTIVE_PIECE.moved(ivec2(0, get_drop_distance(board))).add_to_board(board);
+            ACTIVE_PIECE
+                .moved(ivec2(0, get_drop_distance(board)))
+                .add_to_board(board);
             ACTIVE_PIECE = bag::next_piece();
             placed = true;
         }
@@ -196,7 +198,12 @@ pub fn update(texture: &Texture2D, block_size: f32, offset_x: f32, board: &mut V
                 {
                     let base_col = WHITE;
                     let darkness = ((-((LOCK_DELAY_TIMER / LOCK_DELAY) - 0.5) + 0.5) * 0.7) + 0.3;
-                    Color::new(base_col.r * darkness, base_col.g * darkness, base_col.b * darkness, base_col.a)
+                    Color::new(
+                        base_col.r * darkness,
+                        base_col.g * darkness,
+                        base_col.b * darkness,
+                        base_col.a,
+                    )
                 },
                 params.clone(),
             );
