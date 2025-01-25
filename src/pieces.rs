@@ -13,6 +13,10 @@ const GRAVITY_DELAY: f32 = 1.0;
 const LOCK_DELAY: f32 = 0.5;
 const MAX_LOCK_DELAY: f32 = 2.0;
 
+const ARR: f32 = 0.3333;
+const DAS: f32 = 0.1667;
+const SDF: f32 = 10.0;
+
 #[derive(Clone, Copy)]
 pub struct Piece {
     pub index: i8,
@@ -78,6 +82,12 @@ pub struct Block {
     pub index: i8,
     pub pos: IVec2,
 }
+pub struct Inputs {
+    pub left: bool,
+    pub right: bool,
+    pub left_timer: f32,
+    pub right_timer: f32,
+}
 
 pub static mut SRS_DATA: serde_json::Value = serde_json::Value::Null;
 static mut ACTIVE_PIECE: Piece = Piece {
@@ -89,6 +99,12 @@ static mut GRAVITY_TIMER: f32 = 0.0;
 static mut LOCK_DELAY_TIMER: f32 = 0.0;
 static mut MAX_LOCK_DELAY_TIMER: f32 = 0.0;
 static mut ON_GROUND: bool = false;
+static mut MAIN_INPUTS: Inputs = Inputs {
+    left: false,
+    right: false,
+    left_timer: 0.0,
+    right_timer: 0.0,
+};
 
 pub fn ready() {
     let json = include_str!("srs.json");
