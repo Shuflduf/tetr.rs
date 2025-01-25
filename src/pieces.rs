@@ -13,7 +13,7 @@ const GRAVITY_DELAY: f32 = 1.0;
 const LOCK_DELAY: f32 = 0.5;
 const MAX_LOCK_DELAY: f32 = 2.0;
 
-const ARR: f32 = 0.3333;
+const ARR: f32 = 0.0333;
 const DAS: f32 = 0.1667;
 const SDF: f32 = 10.0;
 
@@ -87,6 +87,7 @@ pub struct Inputs {
     pub right: bool,
     pub left_timer: f32,
     pub right_timer: f32,
+    pub soft_drop: bool,
 }
 
 pub static mut SRS_DATA: serde_json::Value = serde_json::Value::Null;
@@ -104,6 +105,7 @@ static mut MAIN_INPUTS: Inputs = Inputs {
     right: false,
     left_timer: 0.0,
     right_timer: 0.0,
+    soft_drop: false,
 };
 
 pub fn ready() {
@@ -111,6 +113,37 @@ pub fn ready() {
     unsafe {
         ACTIVE_PIECE = bag::next_piece();
         SRS_DATA = serde_json::from_str(json).unwrap();
+    }
+}
+
+fn update_inputs(target_piece: &mut Piece) {
+    unsafe {
+        if is_key_pressed(KeyCode::A) {
+            target_piece.pos.x -= 1;
+            MAIN_INPUTS.left = true;
+            MAIN_INPUTS.right = false;
+        } else if is_key_pressed(KeyCode::D) {
+            target_piece.pos.x += 1;
+            MAIN_INPUTS.right = true;
+            MAIN_INPUTS.left = false;
+        } else if is_key_released(KeyCode::A) {
+            MAIN_INPUTS.left = false;
+            if is_key_down(KeyCode::D) {
+                target_piece.pos.x += 1;
+                MAIN_INPUTS.right = true;
+            }
+        } else if is_key_released(KeyCode::D) {
+            MAIN_INPUTS.right = false;
+            if is_key_down(KeyCode::A) {
+                target_piece.pos.x -= 1;
+                MAIN_INPUTS.left = true;
+            }
+        }
+
+        MAIN_INPUTS.soft_drop = is_key_down(KeyCode::W);
+        if is_key_pressed(KeyCode::W) {
+            GRAVITY_TIMER = GRAVITY_DELAY
+        }
     }
 }
 
@@ -140,11 +173,8 @@ pub fn update(texture: &Texture2D, block_size: f32, offset_x: f32, board: &mut V
             future_piece.add_to_board(board);
             ACTIVE_PIECE = bag::next_piece();
         } else {
-            if is_key_pressed(KeyCode::A) {
-                future_piece.pos.x -= 1;
-            } else if is_key_pressed(KeyCode::D) {
-                future_piece.pos.x += 1;
-            }
+            update_inputs(&mut future_piece);
+            do_arr_magic(&mut future_piece);
             if is_key_pressed(KeyCode::W) {
                 GRAVITY_TIMER = 0.0;
                 future_piece.pos.y += 1;
@@ -156,7 +186,8 @@ pub fn update(texture: &Texture2D, block_size: f32, offset_x: f32, board: &mut V
                 future_piece.rotation += 1;
                 future_piece.rotation %= 4;
             }
-            if GRAVITY_TIMER >= GRAVITY_DELAY {
+            let actual_gravity_delay = if MAIN_INPUTS.soft_drop { GRAVITY_DELAY / SDF } else { GRAVITY_DELAY };
+            if GRAVITY_TIMER >= actual_gravity_delay {
                 future_piece.pos.y += 1;
                 GRAVITY_TIMER = 0.0;
             }
@@ -257,6 +288,29 @@ pub fn update(texture: &Texture2D, block_size: f32, offset_x: f32, board: &mut V
         }
     }
     placed
+}
+
+pub fn do_arr_magic(target_piece: &mut Piece) {
+    unsafe {
+        if MAIN_INPUTS.left {
+            MAIN_INPUTS.left_timer += get_frame_time();
+            if MAIN_INPUTS.left_timer >= DAS + ARR {
+                target_piece.pos.x -= 1;
+                MAIN_INPUTS.left_timer = DAS;
+            }
+        } else {
+            MAIN_INPUTS.left_timer = 0.0;
+        } 
+        if MAIN_INPUTS.right {
+            MAIN_INPUTS.right_timer += get_frame_time();
+            if MAIN_INPUTS.right_timer >= DAS + ARR {
+                target_piece.pos.x += 1;
+                MAIN_INPUTS.right_timer = DAS;
+            }
+        } else {
+            MAIN_INPUTS.right_timer = 0.0;
+        }
+    }
 }
 
 pub fn get_drop_distance(board: &[Block]) -> i32 {
