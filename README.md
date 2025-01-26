@@ -22,7 +22,7 @@ A version on Tetris made in the Rust programming lanuage, powered by the [Macroq
   - [ ] Shaders
 - [ ] Maybe like a leaderboard or smth
 
-If this looks a LOT like [tetr.gp](https://macroquad.rs/),
+If this looks a LOT like [tetr.go](https://github.com/Shuflduf/tetr.go),
 it's because I wanted to see how similar I could make the same game
 in two completly different languages.
 
