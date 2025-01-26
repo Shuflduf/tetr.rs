@@ -62,7 +62,7 @@ fn draw_controls() {
 
         if !CONTROLS_HIDDEN {
             for (i, control) in CONTROLS.iter().enumerate() {
-                draw_text_ex(control, final_position.x, final_position.y + (i as f32 * 19.0), text_params.clone());
+                draw_text_ex(control, final_position.x, final_position.y + (i as f32 * (screen_height() / 40.0)), text_params.clone());
             }
         }
         
