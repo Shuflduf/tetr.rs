@@ -22,6 +22,9 @@ async fn main() {
 
     loop {
         clear_background(BLACK);
+        if false {
+            draw_debug_rectangle();
+        }
 
         // Draw board
         let block_size = screen_height() / (GRID_SIZE.y as f32 + 1.0);
@@ -80,4 +83,18 @@ fn reset_board() -> Vec<Block> {
 
 pub fn get_rect_from_index(index: i32) -> Option<Rect> {
     Some(Rect::new(index as f32 * 32.0 + 4.0, 4.0, 26.0, 26.0))
+}
+
+fn draw_debug_rectangle() {
+        let aspect_ratio = screen_width() / screen_height();
+        let target_aspect_ratio = 4.0 / 3.0;
+        let target_width = screen_height() * target_aspect_ratio;
+        let target_height = screen_width() / target_aspect_ratio;
+        let x_offset = (screen_width() - target_width) / 2.0;
+        let y_offset = (screen_height() - target_height) / 2.0;
+        if aspect_ratio > target_aspect_ratio {
+            draw_rectangle(x_offset, 0.0, target_width, screen_height(), GREEN);
+        } else {
+            draw_rectangle(0.0, y_offset, screen_width(), target_height, BLACK);
+        }
 }

@@ -126,7 +126,9 @@ fn update_inputs(target_piece: &mut Piece) {
             target_piece.pos.x += 1;
             MAIN_INPUTS.right = true;
             MAIN_INPUTS.left = false;
-        } else if is_key_released(KeyCode::A) {
+        }
+
+        if is_key_released(KeyCode::A) {
             MAIN_INPUTS.left = false;
             if is_key_down(KeyCode::D) {
                 target_piece.pos.x += 1;
@@ -138,6 +140,11 @@ fn update_inputs(target_piece: &mut Piece) {
                 target_piece.pos.x -= 1;
                 MAIN_INPUTS.left = true;
             }
+        }
+
+        if is_key_down(KeyCode::A) && is_key_down(KeyCode::D) {
+            MAIN_INPUTS.left = false;
+            MAIN_INPUTS.right = false;
         }
 
         MAIN_INPUTS.soft_drop = is_key_down(KeyCode::W);
