@@ -65,22 +65,6 @@ fn draw_controls() {
                 draw_text_ex(control, final_position.x, final_position.y + (i as f32 * 19.0), text_params.clone());
             }
         }
-
-        // detect if click on text
-
-        // NOTE: current implementation doesnt account for x position
-        //if is_mouse_button_down(miniquad::MouseButton::Left) {
-        //    let mouse = mouse_position();
-        //    let mut y = final_position.y;
-        //    for control in CONTROLS.iter() {
-        //        if mouse.1 > y && mouse.1 < y + 19.0 {
-        //            CONTROLS_HIDDEN = true;
-        //            break;
-        //        }
-        //        y += 19.0;
-        //    }
-        //}
-        
         
         if is_mouse_button_pressed(miniquad::MouseButton::Left) {
             let mouse = mouse_position();
