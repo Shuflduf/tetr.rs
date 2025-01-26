@@ -142,9 +142,11 @@ fn update_inputs(target_piece: &mut Piece) {
             }
         }
 
-        if is_key_down(KeyCode::A) && is_key_down(KeyCode::D) {
+        if !is_key_down(KeyCode::A) && !is_key_down(KeyCode::D) {
             MAIN_INPUTS.left = false;
             MAIN_INPUTS.right = false;
+            MAIN_INPUTS.left_timer = 0.0;
+            MAIN_INPUTS.right_timer = 0.0;
         }
 
         MAIN_INPUTS.soft_drop = is_key_down(KeyCode::W);
