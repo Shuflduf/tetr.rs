@@ -1,4 +1,4 @@
-use macroquad::{color::GRAY, input::{is_mouse_button_down, is_mouse_button_pressed, mouse_position}, math::vec2, text::{draw_text_ex, load_ttf_font, Font, TextParams}, window::{screen_height, screen_width}};
+use macroquad::{color::GRAY, input::{is_mouse_button_pressed, mouse_position}, math::vec2, text::{draw_text_ex, load_ttf_font, Font, TextParams}, window::{screen_height, screen_width}};
 use miniquad::FilterMode;
 
 static mut FONT: Option<Font> = None;
@@ -85,10 +85,8 @@ fn draw_controls() {
         if is_mouse_button_pressed(miniquad::MouseButton::Left) {
             let mouse = mouse_position();
 
-            if mouse.0 > final_position.x - 100.0 && mouse.0 < final_position.x + 100.0 {
-                if mouse.1 > final_position.y - 100.0 && mouse.1 < final_position.y + 100.0 {
-                    CONTROLS_HIDDEN = true;
-                }
+            if mouse.0 > final_position.x - 100.0 && mouse.0 < final_position.x + 100.0 && mouse.1 > final_position.y - 100.0 && mouse.1 < final_position.y + 100.0 {
+                CONTROLS_HIDDEN = true;
             }
         }
 
