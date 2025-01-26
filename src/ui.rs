@@ -40,8 +40,8 @@ fn draw_controls() {
         "D - RIGHT",
         "L ARROW - CCW",
         "R ARROW - CW",
-        "S - SOFT",
-        "W - HARD",
+        "S - HARD",
+        "W - SOFT",
         "SHIFT - HOLD",
         "CLICK TO HIDE"
     ];
