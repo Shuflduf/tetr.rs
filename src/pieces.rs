@@ -186,7 +186,11 @@ pub fn update(texture: &Texture2D, block_size: f32, offset_x: f32, board: &mut V
                 future_piece.rotation += 1;
                 future_piece.rotation %= 4;
             }
-            let actual_gravity_delay = if MAIN_INPUTS.soft_drop { GRAVITY_DELAY / SDF } else { GRAVITY_DELAY };
+            let actual_gravity_delay = if MAIN_INPUTS.soft_drop {
+                GRAVITY_DELAY / SDF
+            } else {
+                GRAVITY_DELAY
+            };
             if GRAVITY_TIMER >= actual_gravity_delay {
                 future_piece.pos.y += 1;
                 GRAVITY_TIMER = 0.0;
@@ -300,7 +304,7 @@ pub fn do_arr_magic(target_piece: &mut Piece) {
             }
         } else {
             MAIN_INPUTS.left_timer = 0.0;
-        } 
+        }
         if MAIN_INPUTS.right {
             MAIN_INPUTS.right_timer += get_frame_time();
             if MAIN_INPUTS.right_timer >= DAS + ARR {

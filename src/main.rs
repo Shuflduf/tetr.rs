@@ -6,12 +6,15 @@ mod bag;
 mod board;
 mod hold_piece;
 mod pieces;
+mod ui;
 
 const GRID_SIZE: IVec2 = ivec2(10, 20);
 
 #[macroquad::main("tetr.rs")]
 async fn main() {
     pieces::ready();
+    ui::ready().await;
+
     let texture = load_texture("assets/texture_simple.png").await.unwrap();
     texture.set_filter(FilterMode::Nearest);
     let mut collision: Vec<Block> = reset_board();
@@ -42,12 +45,13 @@ async fn main() {
             let full_lines = full_lines(&collision);
             clear_lines(&mut collision, &full_lines);
         }
-        bag::draw_next_piece(&texture, block_size, offset_x);
-        hold_piece::draw_held_piece(&texture, block_size, offset_x);
         if is_key_pressed(KeyCode::F) {
             is_fullscreen = !is_fullscreen;
             set_fullscreen(is_fullscreen);
         }
+        bag::draw_next_piece(&texture, block_size, offset_x);
+        hold_piece::draw_held_piece(&texture, block_size, offset_x);
+        ui::draw_ui();
         next_frame().await
     }
 }
