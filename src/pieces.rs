@@ -84,6 +84,12 @@ pub struct Inputs {
     pub right_timer: f32,
     pub soft_drop: bool,
 }
+#[derive(Debug)]
+pub enum TSpin {
+    None,
+    Mini,
+    Regular,
+}
 
 pub static mut SRS_DATA: serde_json::Value = serde_json::Value::Null;
 static mut ACTIVE_PIECE: Piece = Piece {
@@ -96,6 +102,7 @@ static mut LOCK_DELAY_TIMER: f32 = 0.0;
 static mut MAX_LOCK_DELAY_TIMER: f32 = 0.0;
 static mut ON_GROUND: bool = false;
 static mut LAST_KICK: i8 = 0;
+static mut LAST_TSPIN: TSpin = TSpin::None;
 static mut MAIN_INPUTS: Inputs = Inputs {
     left: false,
     right: false,
@@ -152,9 +159,21 @@ fn update_inputs(target_piece: &mut Piece) {
     }
 }
 
-fn check_for_tspin() {
+fn pos_empty(pos: IVec2, board: &[Block]) -> bool {
+    for block in board.iter() {
+        if block.pos == pos {
+            return false;
+        }
+    }
+    true
+}
+
+fn check_for_tspin(board: &[Block]) {
     unsafe {
-        println!("{:?}", LAST_KICK);
+        if ACTIVE_PIECE.index != 6 {
+            return
+        }
+        println!("Last kick: {:?}", LAST_KICK);
         let current_3x3 =
             [ivec2(0, 0), ivec2(2, 0), ivec2(2, 2), ivec2(0, 2)].map(|i| i + ACTIVE_PIECE.pos);
         let (on_front, on_back) = {
@@ -166,6 +185,47 @@ fn check_for_tspin() {
             }
             (final_front, final_back)
         };
+        println!("On front: {:?}. On back: {:?}", on_front, on_back);
+        if LAST_KICK == 0 {
+            for pos in on_front {
+                if pos_empty(pos, board) {
+                    LAST_TSPIN = TSpin::None;
+                    return;
+                }
+            }
+            for pos in on_back {
+                if !pos_empty(pos, board) {
+                    LAST_TSPIN = TSpin::Regular;
+                    return;
+                }
+            }
+        } else if LAST_KICK == 4 {
+            for pos in on_back {
+                if pos_empty(pos, board) {
+                    LAST_TSPIN = TSpin::None;
+                    return;
+                }
+            }
+            for pos in on_front {
+                if !pos_empty(pos, board) {
+                    LAST_TSPIN = TSpin::Regular;
+                    return;
+                }
+            }
+        } else {
+            for pos in on_back {
+                if pos_empty(pos, board) {
+                    LAST_TSPIN = TSpin::None;
+                    return;
+                }
+            }
+            for pos in on_front {
+                if !pos_empty(pos, board) {
+                    LAST_TSPIN = TSpin::Mini;
+                    return;
+                }
+            }
+        }
     }
 }
 
@@ -192,6 +252,7 @@ pub fn update(texture: &Texture2D, block_size: f32, offset_x: f32, board: &mut V
         if is_key_pressed(KeyCode::S) {
             future_piece.pos.y += get_drop_distance(board);
             placed = true;
+            check_for_tspin(board);
             future_piece.add_to_board(board);
             ACTIVE_PIECE = bag::next_piece();
         } else {
@@ -222,11 +283,13 @@ pub fn update(texture: &Texture2D, block_size: f32, offset_x: f32, board: &mut V
             if future_piece.can_move(board) {
                 if ACTIVE_PIECE.pos != future_piece.pos {
                     LOCK_DELAY_TIMER = 0.0;
+                    if future_piece.rotation == ACTIVE_PIECE.rotation {
+                        LAST_KICK = -1;
+                    }
+                } else if future_piece.rotation != ACTIVE_PIECE.rotation {
+                    LOCK_DELAY_TIMER = 0.0
                 }
                 ACTIVE_PIECE = future_piece;
-                if LAST_KICK == 0 {
-                    LAST_KICK = -1; // Change LAST_KICK to -1 if it was a simple move
-                }
             } else if future_piece.rotation != ACTIVE_PIECE.rotation {
                 let kick_index = get_kick_index(ACTIVE_PIECE.rotation, future_piece.rotation);
                 let kick_table = {
@@ -236,7 +299,7 @@ pub fn update(texture: &Texture2D, block_size: f32, offset_x: f32, board: &mut V
                         SRS_DATA["kicks_i"].as_array().unwrap()
                     }
                 };
-                for kick in kick_table[kick_index as usize].as_array().unwrap() {
+                for (i, kick) in kick_table[kick_index as usize].as_array().unwrap().iter().enumerate() {
                     let x = kick[0].as_i64().unwrap() as i32;
                     let y = kick[1].as_i64().unwrap() as i32;
                     let pos = IVec2 { x, y };
@@ -244,7 +307,7 @@ pub fn update(texture: &Texture2D, block_size: f32, offset_x: f32, board: &mut V
                     if new_piece.can_move(board) {
                         LOCK_DELAY_TIMER = 0.0;
                         ACTIVE_PIECE = new_piece;
-                        LAST_KICK = kick_index + 1;
+                        LAST_KICK = (i as i8) + 1;
                         break;
                     }
                 }
@@ -254,6 +317,7 @@ pub fn update(texture: &Texture2D, block_size: f32, offset_x: f32, board: &mut V
                 ON_GROUND = true;
                 LOCK_DELAY_TIMER += get_frame_time();
                 if LOCK_DELAY_TIMER >= LOCK_DELAY {
+                    check_for_tspin(board);
                     ACTIVE_PIECE.add_to_board(board);
                     ACTIVE_PIECE = bag::next_piece();
                     placed = true;
@@ -263,6 +327,7 @@ pub fn update(texture: &Texture2D, block_size: f32, offset_x: f32, board: &mut V
             }
 
             if MAX_LOCK_DELAY_TIMER >= MAX_LOCK_DELAY {
+                check_for_tspin(board);
                 ACTIVE_PIECE
                     .moved(ivec2(0, get_drop_distance(board)))
                     .add_to_board(board);
@@ -309,8 +374,9 @@ pub fn update(texture: &Texture2D, block_size: f32, offset_x: f32, board: &mut V
             );
         }
         if placed {
-            check_for_tspin();
+            println!("{:?}", LAST_TSPIN);
             hold_piece::JUST_HELD = false;
+            LAST_TSPIN = TSpin::None;
             if !ACTIVE_PIECE.can_move(board) {
                 *board = reset_board();
                 reset_bag();
