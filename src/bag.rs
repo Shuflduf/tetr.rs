@@ -16,7 +16,7 @@ const OFFSET: IVec2 = ivec2(13, 2);
 static mut BAG: Vec<Piece> = Vec::new();
 static mut NEXT_PIECE: Option<Piece> = None;
 
-pub fn draw_next_piece(texture: &Texture2D, block_size: f32, offset_x: f32) {
+pub fn draw(texture: &Texture2D, block_size: f32, offset_x: f32) {
     unsafe {
         let piece_data = SRS_DATA["pieces"][NEXT_PIECE.unwrap().index as usize][0].clone();
         for pos in piece_data.as_array().unwrap().iter().map(|x| {

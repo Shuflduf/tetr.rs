@@ -33,7 +33,7 @@ pub fn hold_piece(piece: Piece) -> Piece {
     }
 }
 
-pub fn draw_held_piece(texture: &Texture2D, block_size: f32, offset_x: f32) {
+pub fn draw(texture: &Texture2D, block_size: f32, offset_x: f32) {
     const OFFSET: IVec2 = ivec2(-5, 2);
     unsafe {
         if let Some(held_index) = HELD_PIECE_INDEX {

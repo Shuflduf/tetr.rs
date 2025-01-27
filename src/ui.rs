@@ -1,7 +1,14 @@
-use macroquad::{color::GRAY, input::{is_mouse_button_pressed, mouse_position}, math::vec2, text::{draw_text_ex, load_ttf_font, Font, TextParams}, window::{screen_height, screen_width}};
+use macroquad::{
+    color::GRAY,
+    input::{is_mouse_button_pressed, mouse_position},
+    math::vec2,
+    text::{draw_text_ex, load_ttf_font, Font, TextParams},
+    window::{screen_height, screen_width},
+};
 use miniquad::FilterMode;
 
-static mut FONT: Option<Font> = None;
+pub static mut FONT: Option<Font> = None;
+
 static mut CONTROLS_HIDDEN: bool = false;
 
 pub async fn ready() {
@@ -14,7 +21,7 @@ pub async fn ready() {
     }
 }
 
-pub fn draw_ui() {
+pub fn draw() {
     unsafe {
         let center = vec2(screen_width() / 2.0, screen_height() / 2.0);
         let text_params = TextParams {
@@ -29,7 +36,12 @@ pub fn draw_ui() {
 
         let final_position = center + vec2(offset.x * screen_height(), offset.y * screen_height());
 
-        draw_text_ex("TETR.RS", final_position.x, final_position.y, text_params.clone());
+        draw_text_ex(
+            "TETR.RS",
+            final_position.x,
+            final_position.y,
+            text_params.clone(),
+        );
         draw_controls();
     }
 }
@@ -43,9 +55,9 @@ fn draw_controls() {
         "S - HARD",
         "W - SOFT",
         "SHIFT - HOLD",
-        "CLICK TO HIDE"
+        "CLICK TO HIDE",
     ];
-    
+
     let center = vec2(screen_width() / 2.0, screen_height() / 2.0);
     unsafe {
         let text_params = TextParams {
@@ -62,17 +74,25 @@ fn draw_controls() {
 
         if !CONTROLS_HIDDEN {
             for (i, control) in CONTROLS.iter().enumerate() {
-                draw_text_ex(control, final_position.x, final_position.y + (i as f32 * (screen_height() / 40.0)), text_params.clone());
+                draw_text_ex(
+                    control,
+                    final_position.x,
+                    final_position.y + (i as f32 * (screen_height() / 40.0)),
+                    text_params.clone(),
+                );
             }
         }
-        
+
         if is_mouse_button_pressed(miniquad::MouseButton::Left) {
             let mouse = mouse_position();
 
-            if mouse.0 > final_position.x - 100.0 && mouse.0 < final_position.x + 100.0 && mouse.1 > final_position.y - 100.0 && mouse.1 < final_position.y + 100.0 {
+            if mouse.0 > final_position.x - 100.0
+                && mouse.0 < final_position.x + 100.0
+                && mouse.1 > final_position.y - 100.0
+                && mouse.1 < final_position.y + 100.0
+            {
                 CONTROLS_HIDDEN = true;
             }
         }
-
     }
 }

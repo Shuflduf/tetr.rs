@@ -6,6 +6,7 @@ mod bag;
 mod board;
 mod hold_piece;
 mod pieces;
+mod scoring;
 mod ui;
 
 const GRID_SIZE: IVec2 = ivec2(10, 20);
@@ -13,6 +14,7 @@ const GRID_SIZE: IVec2 = ivec2(10, 20);
 #[macroquad::main("tetr.rs")]
 async fn main() {
     pieces::ready();
+    scoring::ready();
     ui::ready().await;
 
     let texture = load_texture("assets/texture_simple.png").await.unwrap();
@@ -46,15 +48,21 @@ async fn main() {
         }
         if pieces::update(&texture, block_size, offset_x, &mut collision) {
             let full_lines = full_lines(&collision);
+            if !full_lines.is_empty() {
+                scoring::lines_cleared(full_lines.len() as i32);
+            }
             clear_lines(&mut collision, &full_lines);
         }
         if is_key_pressed(KeyCode::F) {
             is_fullscreen = !is_fullscreen;
             set_fullscreen(is_fullscreen);
         }
-        bag::draw_next_piece(&texture, block_size, offset_x);
-        hold_piece::draw_held_piece(&texture, block_size, offset_x);
-        ui::draw_ui();
+
+        bag::draw(&texture, block_size, offset_x);
+        hold_piece::draw(&texture, block_size, offset_x);
+        ui::draw();
+        scoring::draw();
+
         next_frame().await
     }
 }
@@ -86,15 +94,15 @@ pub fn get_rect_from_index(index: i32) -> Option<Rect> {
 }
 
 fn draw_debug_rectangle() {
-        let aspect_ratio = screen_width() / screen_height();
-        let target_aspect_ratio = 4.0 / 3.0;
-        let target_width = screen_height() * target_aspect_ratio;
-        let target_height = screen_width() / target_aspect_ratio;
-        let x_offset = (screen_width() - target_width) / 2.0;
-        let y_offset = (screen_height() - target_height) / 2.0;
-        if aspect_ratio > target_aspect_ratio {
-            draw_rectangle(x_offset, 0.0, target_width, screen_height(), GREEN);
-        } else {
-            draw_rectangle(0.0, y_offset, screen_width(), target_height, BLACK);
-        }
+    let aspect_ratio = screen_width() / screen_height();
+    let target_aspect_ratio = 4.0 / 3.0;
+    let target_width = screen_height() * target_aspect_ratio;
+    let target_height = screen_width() / target_aspect_ratio;
+    let x_offset = (screen_width() - target_width) / 2.0;
+    let y_offset = (screen_height() - target_height) / 2.0;
+    if aspect_ratio > target_aspect_ratio {
+        draw_rectangle(x_offset, 0.0, target_width, screen_height(), GREEN);
+    } else {
+        draw_rectangle(0.0, y_offset, screen_width(), target_height, BLACK);
+    }
 }
