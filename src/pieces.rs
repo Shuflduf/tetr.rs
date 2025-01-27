@@ -3,11 +3,6 @@ use bag::reset_bag;
 use hold_piece::hold_piece;
 use macroquad::math::IVec2;
 
-//const NULL_PIECE: Piece = Piece {
-//    index: -1,
-//    rotation: -1,
-//    pos: IVec2::ZERO,
-//};
 pub const START_POS: IVec2 = IVec2 { x: 4, y: 0 };
 const GRAVITY_DELAY: f32 = 1.0;
 const LOCK_DELAY: f32 = 0.5;
@@ -159,6 +154,7 @@ fn update_inputs(target_piece: &mut Piece) {
 
 fn check_for_tspin() {
     unsafe {
+        println!("{:?}", LAST_KICK);
         let current_3x3 =
             [ivec2(0, 0), ivec2(2, 0), ivec2(2, 2), ivec2(0, 2)].map(|i| i + ACTIVE_PIECE.pos);
         let (on_front, on_back) = {
@@ -198,7 +194,6 @@ pub fn update(texture: &Texture2D, block_size: f32, offset_x: f32, board: &mut V
             placed = true;
             future_piece.add_to_board(board);
             ACTIVE_PIECE = bag::next_piece();
-            LAST_KICK = 0;
         } else {
             update_inputs(&mut future_piece);
             do_arr_magic(&mut future_piece);
@@ -224,14 +219,14 @@ pub fn update(texture: &Texture2D, block_size: f32, offset_x: f32, board: &mut V
                 future_piece.pos.y += 1;
                 GRAVITY_TIMER = 0.0;
             }
-            if future_piece.pos != ACTIVE_PIECE.pos {
-                LAST_KICK = -1;
-            }
             if future_piece.can_move(board) {
                 if ACTIVE_PIECE.pos != future_piece.pos {
                     LOCK_DELAY_TIMER = 0.0;
                 }
                 ACTIVE_PIECE = future_piece;
+                if LAST_KICK == 0 {
+                    LAST_KICK = -1; // Change LAST_KICK to -1 if it was a simple move
+                }
             } else if future_piece.rotation != ACTIVE_PIECE.rotation {
                 let kick_index = get_kick_index(ACTIVE_PIECE.rotation, future_piece.rotation);
                 let kick_table = {
