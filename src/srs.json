@@ -1,7 +1,7 @@
 {
   "_comment": [
     "The Super Rotation System from most modern Tetris games",
-    "Source: https://tetris.wiki/SRS",
+    "Sources: https://tetris.wiki/SRS, https://tetris.wiki/Scoring",
     "The pieces are defined from the top left square, where +x is right and +y is down",
     "It goes in order of the rainbow, with Red being the first and going to Pink being last",
     "Red = Z, Orange = L, Yellow = O, Green = S, Cyan = I, Blue = J, Pink = T",
@@ -15,7 +15,10 @@
     "In other words, the mapping is as follows (R = clockwise once from spawn, L = counterclockwise once from spawn, 2 = 2 rotations from spawn, 0 = 0 rotations from spawn):",
     "0->R = 0, R->0 = 1, R->2 = 2, 2->R = 3, 2->L = 4, L->2 = 5, L->0 = 6, 0->L = 7",
     "I Pieces (Cyan) use a seperate set of kicks",
-    "180 spins arent supported currently, maybe I'll add them later"
+    "180 spins arent supported currently, maybe I'll add them later",
+    "For scoring: scoring_lines can be used by getting the number of lines cleared, and using that - 1 as the index, so 1 line clear would be scoring_lines[0]",
+    "scoring_tspin can be used by directly using the number of lines cleared as the index, so 1 line clear would be scoring_tspin[1]",
+    "scoring_mini is the same as scoring_tspin, except for mini tspins"
   ],
   "pieces": [
     [
@@ -300,5 +303,8 @@
       [-1, -2],
       [2, 1]
     ]
-  ]
+  ],
+  "scoring_lines": [100, 300, 500, 800],
+  "scoring_tspin": [400, 800, 1200, 1600],
+  "scoring_mini": [100, 200, 400]
 }
