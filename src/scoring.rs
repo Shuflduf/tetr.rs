@@ -1,5 +1,8 @@
-
-use macroquad::{math::vec2, text::{draw_text_ex, TextParams}, window::{screen_height, screen_width}};
+use macroquad::{
+    math::vec2,
+    text::{draw_text_ex, TextParams},
+    window::{screen_height, screen_width},
+};
 
 use crate::{pieces::SRS_DATA, ui::FONT};
 
@@ -28,13 +31,16 @@ pub fn ready() {
         populate_table("scoring_tspin", &mut TSPIN_TABLE);
         #[allow(static_mut_refs)]
         populate_table("scoring_mini", &mut MINI_TSPIN_TABLE);
+    }
+}
 
-        //println!("{:?}", LINE_CLEAR_TABLE)
+pub fn reset() {
+    unsafe {
+        SCORE = 0;
     }
 }
 
 pub fn lines_cleared(amount: i32) {
-    println!("lines cleared: {}", amount);
     unsafe {
         SCORE += LINE_CLEAR_TABLE[amount as usize - 1];
         if SCORE > HIGH_SCORE {
@@ -46,14 +52,14 @@ pub fn lines_cleared(amount: i32) {
 pub fn draw() {
     unsafe {
         let center = vec2(screen_width() / 2.0, screen_height() / 2.0);
-        let text_params = TextParams{
+        let text_params = TextParams {
             #[allow(static_mut_refs)]
             font: FONT.as_ref(),
-            font_size: (screen_height() / 40.0) as u16,
+            font_size: (screen_height() / 48.0) as u16,
             ..Default::default()
         };
 
-        let mut offset = vec2(0.3, 0.45);
+        let mut offset = vec2(0.31, 0.45);
         let final_position = center + vec2(offset.x * screen_height(), offset.y * screen_height());
         draw_text_ex(
             #[allow(static_mut_refs)]
@@ -63,7 +69,7 @@ pub fn draw() {
             text_params.clone(),
         );
 
-        offset += vec2(0.0, 0.05);
+        offset += vec2(0.0, 0.03);
         let final_position = center + vec2(offset.x * screen_height(), offset.y * screen_height());
         draw_text_ex(
             #[allow(static_mut_refs)]

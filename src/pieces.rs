@@ -100,6 +100,7 @@ static mut GRAVITY_TIMER: f32 = 0.0;
 static mut LOCK_DELAY_TIMER: f32 = 0.0;
 static mut MAX_LOCK_DELAY_TIMER: f32 = 0.0;
 static mut ON_GROUND: bool = false;
+static mut LAST_KICK: i8 = 0;
 static mut MAIN_INPUTS: Inputs = Inputs {
     left: false,
     right: false,
@@ -156,6 +157,22 @@ fn update_inputs(target_piece: &mut Piece) {
     }
 }
 
+fn check_for_tspin() {
+    unsafe {
+        let current_3x3 =
+            [ivec2(0, 0), ivec2(2, 0), ivec2(2, 2), ivec2(0, 2)].map(|i| i + ACTIVE_PIECE.pos);
+        let (on_front, on_back) = {
+            let mut final_front = [IVec2::ZERO; 2];
+            let mut final_back = [IVec2::ZERO; 2];
+            for i in 0..2 {
+                final_front[i] = current_3x3[(ACTIVE_PIECE.rotation as usize + i) % 4];
+                final_back[i] = current_3x3[(ACTIVE_PIECE.rotation as usize + i + 2) % 4];
+            }
+            (final_front, final_back)
+        };
+    }
+}
+
 pub fn update(texture: &Texture2D, block_size: f32, offset_x: f32, board: &mut Vec<Block>) -> bool {
     let mut placed = false;
     unsafe {
@@ -181,6 +198,7 @@ pub fn update(texture: &Texture2D, block_size: f32, offset_x: f32, board: &mut V
             placed = true;
             future_piece.add_to_board(board);
             ACTIVE_PIECE = bag::next_piece();
+            LAST_KICK = 0;
         } else {
             update_inputs(&mut future_piece);
             do_arr_magic(&mut future_piece);
@@ -191,9 +209,11 @@ pub fn update(texture: &Texture2D, block_size: f32, offset_x: f32, board: &mut V
             if is_key_pressed(KeyCode::Left) {
                 future_piece.rotation += 3;
                 future_piece.rotation %= 4;
+                LAST_KICK = 0;
             } else if is_key_pressed(KeyCode::Right) {
                 future_piece.rotation += 1;
                 future_piece.rotation %= 4;
+                LAST_KICK = 0;
             }
             let actual_gravity_delay = if MAIN_INPUTS.soft_drop {
                 GRAVITY_DELAY / SDF
@@ -203,6 +223,9 @@ pub fn update(texture: &Texture2D, block_size: f32, offset_x: f32, board: &mut V
             if GRAVITY_TIMER >= actual_gravity_delay {
                 future_piece.pos.y += 1;
                 GRAVITY_TIMER = 0.0;
+            }
+            if future_piece.pos != ACTIVE_PIECE.pos {
+                LAST_KICK = -1;
             }
             if future_piece.can_move(board) {
                 if ACTIVE_PIECE.pos != future_piece.pos {
@@ -226,6 +249,7 @@ pub fn update(texture: &Texture2D, block_size: f32, offset_x: f32, board: &mut V
                     if new_piece.can_move(board) {
                         LOCK_DELAY_TIMER = 0.0;
                         ACTIVE_PIECE = new_piece;
+                        LAST_KICK = kick_index + 1;
                         break;
                     }
                 }
@@ -290,6 +314,7 @@ pub fn update(texture: &Texture2D, block_size: f32, offset_x: f32, board: &mut V
             );
         }
         if placed {
+            check_for_tspin();
             hold_piece::JUST_HELD = false;
             if !ACTIVE_PIECE.can_move(board) {
                 *board = reset_board();
@@ -297,6 +322,7 @@ pub fn update(texture: &Texture2D, block_size: f32, offset_x: f32, board: &mut V
                 hold_piece::HELD_PIECE_INDEX = None;
                 ACTIVE_PIECE = bag::next_piece();
                 ACTIVE_PIECE = bag::next_piece();
+                scoring::reset();
             }
         }
     }
