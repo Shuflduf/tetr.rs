@@ -1,6 +1,6 @@
 use board::*;
 use macroquad::prelude::*;
-use pieces::Block;
+use pieces::{Block, LAST_TSPIN};
 
 mod bag;
 mod board;
@@ -48,9 +48,8 @@ async fn main() {
         }
         if pieces::update(&texture, block_size, offset_x, &mut collision) {
             let full_lines = full_lines(&collision);
-            if !full_lines.is_empty() {
-                scoring::lines_cleared(full_lines.len() as i32);
-            }
+            println!("{:?}", LAST_TSPIN)
+            scoring::update_score(full_lines.len() as i32);
             clear_lines(&mut collision, &full_lines);
         }
         if is_key_pressed(KeyCode::F) {

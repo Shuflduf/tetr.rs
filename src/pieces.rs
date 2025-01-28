@@ -84,13 +84,14 @@ pub struct Inputs {
     pub right_timer: f32,
     pub soft_drop: bool,
 }
-#[derive(Debug)]
+#[derive(Debug, PartialEq)]
 pub enum TSpin {
     None,
     Mini,
     Regular,
 }
 
+pub static mut LAST_TSPIN: TSpin = TSpin::None;
 pub static mut SRS_DATA: serde_json::Value = serde_json::Value::Null;
 static mut ACTIVE_PIECE: Piece = Piece {
     index: 0,
@@ -102,7 +103,6 @@ static mut LOCK_DELAY_TIMER: f32 = 0.0;
 static mut MAX_LOCK_DELAY_TIMER: f32 = 0.0;
 static mut ON_GROUND: bool = false;
 static mut LAST_KICK: i8 = 0;
-static mut LAST_TSPIN: TSpin = TSpin::None;
 static mut MAIN_INPUTS: Inputs = Inputs {
     left: false,
     right: false,
