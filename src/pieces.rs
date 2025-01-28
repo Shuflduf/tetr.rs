@@ -171,9 +171,8 @@ fn pos_empty(pos: IVec2, board: &[Block]) -> bool {
 fn check_for_tspin(board: &[Block]) {
     unsafe {
         if ACTIVE_PIECE.index != 6 {
-            return
+            return;
         }
-        println!("Last kick: {:?}", LAST_KICK);
         let current_3x3 =
             [ivec2(0, 0), ivec2(2, 0), ivec2(2, 2), ivec2(0, 2)].map(|i| i + ACTIVE_PIECE.pos);
         let (on_front, on_back) = {
@@ -232,6 +231,9 @@ fn check_for_tspin(board: &[Block]) {
 pub fn update(texture: &Texture2D, block_size: f32, offset_x: f32, board: &mut Vec<Block>) -> bool {
     let mut placed = false;
     unsafe {
+        if ACTIVE_PIECE.index != 6 {
+            LAST_TSPIN = TSpin::None;
+        }
         if is_key_pressed(KeyCode::LeftShift) {
             GRAVITY_TIMER = 0.0;
             LOCK_DELAY_TIMER = 0.0;
@@ -299,7 +301,12 @@ pub fn update(texture: &Texture2D, block_size: f32, offset_x: f32, board: &mut V
                         SRS_DATA["kicks_i"].as_array().unwrap()
                     }
                 };
-                for (i, kick) in kick_table[kick_index as usize].as_array().unwrap().iter().enumerate() {
+                for (i, kick) in kick_table[kick_index as usize]
+                    .as_array()
+                    .unwrap()
+                    .iter()
+                    .enumerate()
+                {
                     let x = kick[0].as_i64().unwrap() as i32;
                     let y = kick[1].as_i64().unwrap() as i32;
                     let pos = IVec2 { x, y };
@@ -376,7 +383,6 @@ pub fn update(texture: &Texture2D, block_size: f32, offset_x: f32, board: &mut V
         if placed {
             println!("{:?}", LAST_TSPIN);
             hold_piece::JUST_HELD = false;
-            LAST_TSPIN = TSpin::None;
             if !ACTIVE_PIECE.can_move(board) {
                 *board = reset_board();
                 reset_bag();

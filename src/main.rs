@@ -48,7 +48,10 @@ async fn main() {
         }
         if pieces::update(&texture, block_size, offset_x, &mut collision) {
             let full_lines = full_lines(&collision);
-            println!("{:?}", LAST_TSPIN)
+            unsafe {
+
+                println!("ABC: {:?}", LAST_TSPIN)
+            }
             scoring::update_score(full_lines.len() as i32);
             clear_lines(&mut collision, &full_lines);
         }

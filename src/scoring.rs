@@ -4,7 +4,10 @@ use macroquad::{
     window::{screen_height, screen_width},
 };
 
-use crate::{pieces::{TSpin, LAST_TSPIN, SRS_DATA}, ui::FONT};
+use crate::{
+    pieces::{TSpin, LAST_TSPIN, SRS_DATA},
+    ui::FONT,
+};
 
 static mut LINE_CLEAR_TABLE: [u32; 4] = [0; 4];
 static mut TSPIN_TABLE: [u32; 4] = [0; 4];
@@ -43,7 +46,13 @@ pub fn reset() {
 pub fn update_score(lines_amount: i32) {
     unsafe {
         match LAST_TSPIN {
-            TSpin::None => SCORE += if lines_amount > 0 { LINE_CLEAR_TABLE[lines_amount as usize - 1] } else { 0 },
+            TSpin::None => {
+                SCORE += if lines_amount > 0 {
+                    LINE_CLEAR_TABLE[lines_amount as usize - 1]
+                } else {
+                    0
+                }
+            }
             TSpin::Regular => SCORE += TSPIN_TABLE[lines_amount as usize],
             TSpin::Mini => SCORE += MINI_TSPIN_TABLE[lines_amount as usize],
         }
